@@ -15,13 +15,13 @@ export default function LoginPage() {
     }, [loading, user, router]);
 
     if (loading) {
-        return <p className="text-center mt-10">Checking user session...</p>;
+        return <p className="mt-10 text-center">Checking user session...</p>;
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 px-4">
-            <div className="max-w-md w-full bg-white dark:bg-gray-800 p-8 rounded-lg shadow-md">
-                <h1 className="text-2xl font-bold text-center mb-6 text-gray-900 dark:text-gray-100">Login</h1>
+        <div className="flex items-center justify-center min-h-screen px-4 bg-gray-100 dark:bg-gray-900">
+            <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md dark:bg-gray-800">
+                <h1 className="mb-6 text-2xl font-bold text-center text-gray-900 dark:text-gray-100">Login</h1>
                 <AuthForm/>
             </div>
         </div>

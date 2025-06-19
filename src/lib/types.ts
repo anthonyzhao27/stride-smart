@@ -29,28 +29,44 @@ export type FormData = {
 }
 
 export type TrainingWorkout = {
+    id: string;
     name: string;
-    type: string;
+    date: Date;
     dayOfWeek: string;
     tags: 'LT1' | 'LT2' | 'Hills' | 'MediumLongRun' | 'LongRun' | 'Easy' | 'Crosstrain' | 'Off';
+    type: string;
     duration: string;
-    rest?: string;
     targetHeartRate: string;
+    targetEffortLevel: string;
+    targetPace: string;
+    rest?: string;
+    warmup?: string;
+    cooldown?: string;
+    totalDistance: string;
+    totalDuration: string;
     notes?: string;
 }
 
 export type TrainingWeek = {
+    id: string;
     week: number;
+    startDate: Date;
+    endDate: Date;
     totalMileage: number;
     description?: string;
-    workouts: Workout[];
+    workouts: TrainingWorkout[];
 }
 
 export type User = {
     experience: string;
-    mileage: number;
     trainingDays: string[];
-    raceGoalTime: string;
-    raceDistance: string;
-    raceDate: string;
+    currentMileage: number;
+    currentRaceTime: string;
+    currentRaceDistance: "Mile" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon";
+    goalMileage: number;
+    goalRaceTime: string;
+    goalRaceDistance: "Mile" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon";
+    goalRaceDate: string;
+    planStartDate: string;
+    numWeeks: number;
 }

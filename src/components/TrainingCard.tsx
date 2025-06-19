@@ -13,7 +13,7 @@ const tagColorMap: Record<TrainingWorkout['tags'], string> = {
 
 export default function TrainingCard({ workout }: { workout: TrainingWorkout }) {
   return (
-    <div className="p-4 space-y-2 bg-white border border-gray-200 shadow-sm rounded-2xl dark:border-gray-700 dark:bg-gray-900">
+    <div className="min-h-[350px] p-4 space-y-2 bg-white border border-gray-200 shadow-sm rounded-2xl dark:border-gray-700 dark:bg-gray-900">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-2xl font-semibold">{workout.name}</h3>
@@ -29,15 +29,36 @@ export default function TrainingCard({ workout }: { workout: TrainingWorkout }) 
           <span className="font-medium text-gray-700 dark:text-gray-300">Type:</span> {workout.type}
         </div>
         <div>
-          <span className="font-medium text-gray-700 dark:text-gray-300">Duration:</span> {workout.duration}
+          <span className="font-medium text-gray-700 dark:text-gray-300"></span>
+        </div>
+        <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Target HR:</span> {workout.targetHeartRate}
+        </div>
+        <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Effort Level:</span> {workout.targetEffortLevel}
+        </div>
+        <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Target Pace:</span> {workout.targetPace}
         </div>
         {workout.rest && (
           <div>
             <span className="font-medium text-gray-700 dark:text-gray-300">Rest:</span> {workout.rest}
           </div>
         )}
+        {workout.warmup && (
+          <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Warmup:</span> {workout.warmup}
+          </div>
+        )}
+        {workout.rest && (
+          <div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Cooldown:</span> {workout.cooldown}
+          </div>
+        )}
         <div>
-        <span className="font-medium text-gray-700 dark:text-gray-300">Target HR:</span> {workout.targetHeartRate}
+            <span className="font-medium text-gray-700 dark:text-gray-300">Total Distance:</span> {workout.totalDistance}
+        </div><div>
+            <span className="font-medium text-gray-700 dark:text-gray-300">Total Duration:</span> {workout.totalDuration}
         </div>
       </div>
 

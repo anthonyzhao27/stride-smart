@@ -1,22 +1,34 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
-import { query, orderBy, collection, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
+import { query, orderBy, collection, onSnapshot, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { Workout, FormData } from '@/lib/types';
 import WorkoutForm from './WorkoutForm';
 import { FaPlus } from 'react-icons/fa';
 import { useAuth } from "@/context/AuthContext";
 import WorkoutCard from '@/components/WorkoutCard';
-// import OnboardingModal from '@/components/OnboardingModal';
+import OnboardingModal from '@/components/OnboardingModal';
 import TrainingCard from '@/components/TrainingCard';
 import MileageChart from '@/components/MileageChart';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
     const [workouts, setWorkouts] = useState<Workout[]>([]);
     const [showForm, setShowForm] = useState(false);
     type WorkoutWithFormData = { id: string } & Partial<FormData>;
     const [selectedWorkout, setSelectedWorkout] = useState<WorkoutWithFormData | null>(null);
-    // const [isModalOpen, setIsModalOpen] = useState(false);
+    const [showOnboarding, setShowOnboarding] = useState(false);
+
+    const router = useRouter();
+    
+    const { user } = useAuth();
+    const uid = user?.uid;   
+    
+    useEffect(() => {
+        if (user === null) {
+            router.push("/login")
+        }
+    }, [user, router]);
 
     function convertWorkoutToFormData(workout: Workout): Partial<FormData> {
 
@@ -50,9 +62,19 @@ export default function Dashboard() {
 
     const handleOpenForm = () => setShowForm(true);
 
-    const { user } = useAuth();
 
-    const uid = user?.uid;
+    useEffect(() => {
+        const checkOnboarding = async () => {
+            if (!uid) return;
+            
+            const onboardingRef = doc(db, "users", uid, "onboardingData", "profile");
+            const onboardingSnap = await getDoc(onboardingRef);
+
+            setShowOnboarding(!onboardingSnap.exists());
+        };
+
+        checkOnboarding();
+    }, [uid]);
 
     useEffect(() => {
         if (!uid) return;
@@ -116,7 +138,7 @@ export default function Dashboard() {
             <>
                 <button
                     onClick={handleOpenForm}
-                    className="fixed flex items-center justify-center w-16 h-16 text-white transition-all duration-300 transform rounded-full shadow-lg bottom-6 right-6 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-xl hover:scale-105 focus:outline-none ring-2 ring-green-300 dark:ring-green-700"
+                    className="fixed z-50 flex items-center justify-center w-16 h-16 text-white transition-all duration-300 transform rounded-full shadow-lg bottom-6 right-6 bg-gradient-to-br from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-xl hover:scale-105 focus:outline-none ring-2 ring-green-300 dark:ring-green-700"
                     aria-label="Add workout"
                     >
                     <FaPlus className="text-2xl text-white" />
@@ -141,6 +163,20 @@ export default function Dashboard() {
         );
     };
 
+    const OnboardingForm = () => {
+        return (
+            <>
+                {showOnboarding && (
+                    <OnboardingModal
+                        isOpen={true}
+                        onClose={() => setShowOnboarding(false)} // optional skip
+                        onSubmit={() => setShowOnboarding(false)} // hides modal after save
+                    />
+                )}
+            </>
+        );
+    }
+
     const handleDelete = async (id: string) => {
         try {
             if (!id || !uid) {
@@ -155,71 +191,88 @@ export default function Dashboard() {
         }
     }
 
+    if (user === undefined) return null;
+    if (user === null) return null;
+
     return (
-        <main className="min-h-screen pl-0 bg-gradient-to-br from-blue-50 via-white to-green-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 md:pl-64">
-            {/* Training Overview */}
-            <div className="grid gap-6 p-6 mx-auto mb-12 max-w-screen-2xl lg:grid-cols-2 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] animate-fade-in">
-                <div>
-                    <h1 className="mb-8 text-4xl font-extrabold tracking-tight text-gray-800 dark:text-white">
-                        Upcoming Workout
+        <>
+            <OnboardingForm />
+            <main className="min-h-screen pl-0 bg-gradient-to-br from-blue-50 via-white to-green-100 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 md:pl-64">
+                {/* Training Overview */}
+                <div className="grid items-start gap-6 p-6 mx-auto mb-12 max-w-screen-2xl lg:grid-cols-2 animate-fade-in">
+                {/* Column 1: Upcoming Workout */}
+                <div className="flex flex-col space-y-4">
+                    <h1 className="text-4xl font-extrabold tracking-tight text-gray-800 dark:text-white">
+                    Upcoming Workout
                     </h1>
-                    <div>
-                        {/* Training Card */}
-                        <TrainingCard workout={{
+                    <div className="flex-1 min-h-[350px] h-full flex flex-col">
+                        <TrainingCard
+                            workout={{
+                            id: 'upcoming-workout',
                             name: '8x1k Cruise Intervals',
-                            type: 'LT2',
+                            date: new Date('2025-06-15'),
                             dayOfWeek: 'Tuesday',
                             tags: 'LT2',
-                            duration: '60 min',
-                            rest: '90s jog',
+                            type: 'Cruise Intervals',
+                            duration: "5x6 min",
                             targetHeartRate: '160–170 bpm',
+                            targetEffortLevel: 'Hard',
+                            targetPace: '6:00-6:20/mi',
+                            rest: '90s jog',
+                            warmup: '15 min jog',
+                            cooldown: '15 min',
+                            totalDistance: '9 mi',
+                            totalDuration: '70 min',
                             notes: 'Keep pace controlled. This is not a VO2 max session.',
-                        }} />
+                            }}
+                        />
                     </div>
                 </div>
 
-                {/* Graph Component */}
-                <div>
-                    <h1 className="mb-8 text-4xl font-extrabold tracking-tight text-gray-800 dark:text-white">
-                        Mileage
+                {/* Column 2: Mileage Chart */}
+                <div className="flex flex-col space-y-4">
+                    <h1 className="text-4xl font-extrabold tracking-tight text-gray-800 dark:text-white">
+                    Mileage
                     </h1>
-                    {/* Mileage Chart Section */}
-                    <div className="p-6 bg-white border border-gray-200 shadow-sm dark:bg-gray-900 rounded-2xl dark:border-gray-700">
+                    <div className="flex-1 min-h-[350px] h-full bg-white border border-gray-200 shadow-sm rounded-2xl dark:border-gray-700 dark:bg-gray-900 p-6 flex flex-col">
                         <MileageChart />
                     </div>
                 </div>
-            </div>
+                </div>
 
-            <div className="p-6 mx-auto max-w-screen-2xl">
-                {/* Heading */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-extrabold tracking-tight text-gray-800 dark:text-white">
-                        Recent Workouts
-                    </h1>
-                </div>
-                {/* Workouts Grid */}
-                {workouts.length === 0 ? (
-                <div className="p-6 text-center text-gray-600 bg-white rounded-lg shadow dark:bg-gray-800 dark:text-gray-300">
-                    <p>No workouts yet. Get moving!</p>
-                </div>
-                ) : (
-                <div className="grid gap-6 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] animate-fade-in">
-                    {workouts.slice(0, 6).map((workout) => (
-                        <WorkoutCard
-                            key={workout.id}
-                            workout={workout}
-                            onDelete={handleDelete}
-                            onEdit={handleEdit}
-                        />
-                    ))}
-                </div>
-                )}
 
-                {/* Add Workout Button */}
-                <div className="flex justify-center mt-10">
-                <WorkoutButton />
+
+                <div className="p-6 mx-auto max-w-screen-2xl">
+                    {/* Heading */}
+                    <div className="mb-8">
+                        <h1 className="text-4xl font-extrabold tracking-tight text-gray-800 dark:text-white">
+                            Recent Workouts
+                        </h1>
+                    </div>
+                    {/* Workouts Grid */}
+                    {workouts.length === 0 ? (
+                    <div className="p-6 text-center text-gray-600 bg-white rounded-lg shadow dark:bg-gray-800 dark:text-gray-300">
+                        <p>No workouts yet. Get moving!</p>
+                    </div>
+                    ) : (
+                    <div className="grid gap-6 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] animate-fade-in">
+                        {workouts.slice(0, 6).map((workout) => (
+                            <WorkoutCard
+                                key={workout.id}
+                                workout={workout}
+                                onDelete={handleDelete}
+                                onEdit={handleEdit}
+                            />
+                        ))}
+                    </div>
+                    )}
+
+                    {/* Add Workout Button */}
+                    <div className="flex justify-center mt-10">
+                        <WorkoutButton />
+                    </div>
                 </div>
-            </div>
-        </main>
+            </main>
+        </>
     );
 }

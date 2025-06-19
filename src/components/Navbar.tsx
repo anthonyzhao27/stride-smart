@@ -45,14 +45,14 @@ export default function LayoutWithSidebar() {
     return (
         <>
             {/* Top nav with hamburger on mobile */}
-            <nav className="sm:pl-0 md:pl-64 sticky top-0 z-30 w-full h-16 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md shadow-sm border-b border-gray-200 dark:border-gray-700">
-                <div className="flex items-center justify-between px-4 sm:px-6 h-full space-x-4">
+            <nav className="sticky top-0 z-30 w-full h-16 border-b border-gray-200 shadow-sm sm:pl-0 md:pl-64 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md dark:border-gray-700">
+                <div className="flex items-center justify-between h-full px-4 space-x-4 sm:px-6">
                     
                     {/* Left section (hamburger + search) */}
-                    <div className="flex items-center space-x-3 flex-grow max-w-xl">
+                    <div className="flex items-center flex-grow max-w-xl space-x-3">
                         {/* Mobile hamburger */}
                         <button
-                            className="md:hidden text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 transition"
+                            className="text-gray-700 transition md:hidden dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400"
                             onClick={() => setIsOpen(true)}
                         >
                             <FaBars size={22} />
@@ -63,7 +63,7 @@ export default function LayoutWithSidebar() {
                             <input
                                 type="text"
                                 placeholder="Search workouts..."
-                                className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400"
+                                className="w-full px-4 py-2 text-sm bg-white border border-gray-300 rounded-lg dark:border-gray-700 dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-green-500 dark:focus:ring-green-400"
                             />
                         </div>
                     </div>
@@ -84,17 +84,17 @@ export default function LayoutWithSidebar() {
                     md:translate-x-0
                     `}
                 >
-                    <div className="h-full flex flex-col justify-between px-6 pt-4 pb-6 text-gray-700 dark:text-gray-200">
+                    <div className="flex flex-col justify-between h-full px-6 pt-4 pb-6 text-gray-700 dark:text-gray-200">
                     {/* TOP: Logo + nav */}
                     <div>
                         {/* Header: Logo + Close button */}
-                        <div className="flex justify-between items-center mb-6">
-                        <span className="text-2xl font-extrabold text-green-600 tracking-tight">Stride Smart</span>
+                        <div className="flex items-center justify-between mb-6">
+                        <span className="text-2xl font-extrabold tracking-tight text-green-600">Stride Smart</span>
 
                         {/* Close button (mobile only) */}
                         <button
                             onClick={() => setIsOpen(false)}
-                            className="text-gray-700 dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 transition md:hidden"
+                            className="text-gray-700 transition dark:text-gray-200 hover:text-green-600 dark:hover:text-green-400 md:hidden"
                             aria-label="Close sidebar"
                         >
                             <FaTimes size={24} />
@@ -103,18 +103,24 @@ export default function LayoutWithSidebar() {
 
                         {/* Navigation */}
                         <nav className="space-y-3 text-sm font-medium">
-                        <Link
-                            href="/dashboard"
-                            className="block text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition"
-                        >
-                            Dashboard
-                        </Link>
-                        <Link
-                            href="/ask-ai"
-                            className="block text-gray-700 dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400 transition"
-                        >
-                            Ask AI Coach
-                        </Link>
+                            <Link
+                                href="/dashboard"
+                                className="block text-gray-700 transition dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400"
+                            >
+                                Dashboard
+                            </Link>
+                            <Link
+                                href="/training-log"
+                                className="block text-gray-700 transition dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400"
+                            >
+                                Training Log
+                            </Link>
+                            <Link
+                                href="/ask-ai"
+                                className="block text-gray-700 transition dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400"
+                            >
+                                Ask AI Coach
+                            </Link>
                         </nav>
                     </div>
 

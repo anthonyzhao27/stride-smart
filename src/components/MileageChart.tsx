@@ -14,7 +14,7 @@ export default function MileageChart() {
                 <XAxis dataKey="week" />
                 <YAxis label={{ value: 'Miles', angle: -90, position: 'insideLeft' }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="mileage" stroke="#10b981" strokeWidth={2} />
+                <Line type="linear" dataKey="mileage" stroke="#10b981" strokeWidth={2} />
             </LineChart>
         </ResponsiveContainer>
     );
