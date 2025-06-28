@@ -110,6 +110,12 @@ export default function LayoutWithSidebar() {
                                 Dashboard
                             </Link>
                             <Link
+                                href="/calendar"
+                                className="block text-gray-700 transition dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400"
+                            >
+                                Calendar
+                            </Link>
+                            <Link
                                 href="/training-log"
                                 className="block text-gray-700 transition dark:text-gray-300 hover:text-green-600 dark:hover:text-green-400"
                             >
