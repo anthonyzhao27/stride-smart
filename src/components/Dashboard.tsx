@@ -106,12 +106,14 @@ export default function Dashboard() {
                     };
                 });
                 
+                console.log(workoutsData);
                 setWorkouts(workoutsData);
             },
             (error) => {
                 console.error("Error fetching workouts:", error);
             }
         );
+
         
         return () => unsubscribe();
     }, [uid]);
@@ -132,6 +134,9 @@ export default function Dashboard() {
             window.removeEventListener("keydown", handleKeyDown);
         }
     }, [showForm]);
+
+    useEffect(() => { //fetches latest training workout
+    })
 
     const WorkoutButton = () => {
         return (
