@@ -1,24 +1,17 @@
 import vdot from "./vdot.json";
+import { RaceDist, TrainingPaces } from "@/lib/types"
 
-type TrainingPaces = {
-    vdot: number;
-    m1500Pace: string;
-    m3000Pace: string;
-    m5000Pace: string;
-    m10000Pace: string;
-    lt2Pace: string;
-    lt1Pace: string;
-    easyPace: string;
-};
+type RacePaces = {
+    "1500": number;
+    "3K": number;
+    "5K": number;
+    "10K": number;
+    "Half Marathon": number;
+    "Marathon": number;
+}
 
 function toSecondsFlexible(time: string): number {
-    if (typeof time !== "string") {
-        console.error("Invalid time passed to toSecondsFlexible:", time);
-        throw new Error("Expected a time string in HH:MM:SS or MM:SS format, but got " + typeof time);
-    }
-
     const parts = time.split(":").map(Number);
-
     if (parts.length === 3) {
         const [h, m, s] = parts;
         return h * 3600 + m * 60 + s;
@@ -30,35 +23,77 @@ function toSecondsFlexible(time: string): number {
     }
 }
 
-
-function formatPace(secondsPerMile: number): string {
+export function formatPace(secondsPerMile: number): string {
     const minutes = Math.floor(secondsPerMile / 60);
     const seconds = Math.round(secondsPerMile % 60);
     return `${minutes}:${seconds.toString().padStart(2, "0")} min/mi`;
 }
 
-export function getTrainingPaces(
-    distance: "Mile" | "1500" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon",
-    time: string
-): TrainingPaces {
-    let res = vdot[vdot.length - 1]; // Default to the last entry
-
+function getTrainingPacesFromTime(
+    distance: RaceDist,
+    time: string, isGoal: boolean = false
+): RacePaces {
+    let res = vdot[vdot.length - 1];
     for (let i = 0; i < vdot.length; i++) {
         const entry = vdot[i];
         if (toSecondsFlexible(entry[distance]) < toSecondsFlexible(time)) {
-            res = i > 0 ? vdot[i - 1] : entry;
-            break;
+        res = i > 0 ? (isGoal ? vdot[i] : vdot[i - 1]) : entry;
+        break;
         }
     }
-
     return {
-        vdot: res['VDOT'],
-        m1500Pace: formatPace(toSecondsFlexible(res['1500']) / 0.93),
-        m3000Pace: formatPace(toSecondsFlexible(res['3K']) / 1.86),
-        m5000Pace: formatPace(toSecondsFlexible(res['5K']) / 3.11),
-        m10000Pace: formatPace(toSecondsFlexible(res['10K']) / 6.21),
-        lt2Pace: `${formatPace(toSecondsFlexible(res['Half Marathon']) / 13.11 + 5)} - ${formatPace(toSecondsFlexible(res['Half Marathon']) / 13.11 + 20)}`,
-        lt1Pace: `${formatPace(toSecondsFlexible(res['Marathon']) / 26.22 + 5)} - ${formatPace(toSecondsFlexible(res['Marathon']) / 26.22 + 20)}`,
-        easyPace: `${formatPace(toSecondsFlexible(res['Marathon']) / 26.22 + 90)} - ${formatPace(toSecondsFlexible(res['Marathon']) / 26.22 + 150)}`
+        "1500": toSecondsFlexible(res["1500"]) / 0.93,
+        "3K": toSecondsFlexible(res["3K"]) / 1.86,
+        "5K": toSecondsFlexible(res["5K"]) / 3.11,
+        "10K": toSecondsFlexible(res["10K"]) / 6.21,
+        "Half Marathon": toSecondsFlexible(res["Half Marathon"]) / 13.11,
+        "Marathon": toSecondsFlexible(res["Marathon"]) / 26.22,
     };
+}
+
+export function getTrainingPaces(
+    currentRaceDistance: RaceDist,
+    currentRaceTime: string,
+    goalRaceDistance: RaceDist,
+    goalRaceTime: string,
+    numWeeks: number,
+    week: number
+): TrainingPaces {
+    const currentPaces = getTrainingPacesFromTime(currentRaceDistance, currentRaceTime);
+    const goalPaces = getTrainingPacesFromTime(goalRaceDistance, goalRaceTime, true);
+
+    const result: TrainingPaces = {
+        "1500": 0,
+        "3K": 0,
+        "5K": 0,
+        "10K": 0,
+        "Half Marathon": 0,
+        "Marathon": 0,
+        "LT1": [0, 0],
+        "LT2": [0, 0],
+        "Easy": [0, 0],
+        "Hills": [0, 0]
+    };
+
+    for (const key of Object.keys(goalPaces).filter(k =>
+        ["1500", "3K", "5K", "10K", "Half Marathon", "Marathon"].includes(k)
+    ) as RaceDist[]) {
+        const interpolated = currentPaces[key] + (goalPaces[key] - currentPaces[key]) * ((week - 1) / (numWeeks - 1));
+        result[key] = interpolated;
+    }
+
+    // Add training zone paces
+    const LT1 = Math.ceil(result["Marathon"]! / 5) * 5 + 15;
+    result["LT1"] = [LT1, LT1 + 20];
+
+    const LT2 = Math.ceil(result["Half Marathon"]! / 5) * 5 + 15;
+    result["LT2"] = [LT2, LT2 + 20];
+
+    const Easy = Math.ceil(result["Marathon"]! / 5) * 5 + 90
+    result["Easy"] = [Easy, Easy + 60];
+
+    const Hills = Math.ceil(result["5K"]! / 5) * 5 + 15;
+    result["Hills"] = [Hills, Hills + 20];
+
+    return result;
 }

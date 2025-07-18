@@ -4,9 +4,9 @@ import { HiDotsVertical } from "react-icons/hi";
 import { Menu, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import WorkoutModal from './WorkoutModal';
-import { Workout } from "@/lib/types";
+import { LoggedWorkout } from "@/lib/types";
 
-export default function WorkoutCard({ workout, onDelete, onEdit }: { workout: Workout, onDelete: (id: string) => Promise<void>, onEdit: (workout: Workout) => void }) {
+export default function WorkoutCard({ workout, onDelete, onEdit }: { workout: LoggedWorkout, onDelete: (id: string) => Promise<void>, onEdit: (workout: LoggedWorkout) => void }) {
     const [showMore, setShowMore] = useState(false);
     
     const date = workout.timestamp.toLocaleDateString();

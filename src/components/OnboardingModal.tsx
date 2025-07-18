@@ -72,9 +72,12 @@ export default function OnboardingModal({
             return Math.floor(diffInWeeks); // use Math.ceil if you want to round up
         }
         
+          const orderedTrainingDays = daysOfWeek.filter((day) => data.trainingDays.includes(day));
+
+        
         const payload: User = {
             experience: data.experience,
-            trainingDays: data.trainingDays,
+            trainingDays: orderedTrainingDays,
             currentMileage: data.currentMileage,
             currentRaceTime: formatTime(data.currentHours, data.currentMinutes, data.currentSeconds),
             currentRaceDistance: data.currentRaceDistance,
@@ -95,8 +98,9 @@ export default function OnboardingModal({
             await fetch("/api/generatePlan", {
                 method: "POST",
                 headers: { "Content-Type": "application/json"},
-                body: JSON.stringify({ uid, user: payload }),                
+                body: JSON.stringify({ uid, user: payload }),
             });
+            
         } catch (err) {
             console.error("Error during onboarding:", err);
         }

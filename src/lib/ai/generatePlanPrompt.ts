@@ -1,45 +1,34 @@
 import { User } from "@/lib/types";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { OpenAI } from "openai";
-import { getTrainingPaces } from "@/lib/training/getTrainingPaces";
+import { getMileageProgression } from "@/lib/training/getMileageProgression";
 
 
 export function generatePlanPrompt(input: User, week: number) : [ChatCompletionMessageParam[], OpenAI.Chat.Completions.ChatCompletionCreateParams.Function[]] {
     const { experience, trainingDays, currentMileage, currentRaceTime, currentRaceDistance, goalMileage, goalRaceTime, goalRaceDistance, goalRaceDate, planStartDate } = input;
 
-    const { lt2Pace: currentLT2Pace, lt1Pace: currentLT1Pace, easyPace: currentEasyPace} = getTrainingPaces(currentRaceDistance, currentRaceTime);
-    
-    const { m1500Pace: goal1500mPace, m3000Pace: goal3KPace, m5000Pace: goal5KPace, m10000Pace: goal10KPace, lt2Pace: goalLT2Pace, lt1Pace: goalLT1Pace, easyPace: goalEasyPace } = getTrainingPaces(goalRaceDistance, goalRaceTime);
-
-    const currentTrainingPaces = `LT1: ${currentLT1Pace}, LT2: ${currentLT2Pace}, Easy: ${currentEasyPace}`;
-    const goalTrainingPaces = `LT1: ${goalLT1Pace}, LT2: ${goalLT2Pace}, Easy: ${goalEasyPace}`;
-    const goalRacePaces = `1500m: ${goal1500mPace}, 3K: ${goal3KPace}, 5K: ${goal5KPace}, 10K: ${goal10KPace}`;
-
     
     let experienceInstructions = "";
     switch (experience) {
-        case "beginner":
-            experienceInstructions = "Keep intensity low. Include mostly easy runs with at most 1 short LT1 session. Include 2 rest days.";
+        case "Beginner":
+            experienceInstructions = "Keep intensity low. Include mostly easy runs with at most 1 short LT1 session and one medium-long run. Include 2 rest days.";
             break;
-    case "intermediate":
-            experienceInstructions = "Include 1–2 LT1 workouts, 1 LT2 session, and a hill sprint day. One rest day is recommended.";
+    case "Intermediate":
+            experienceInstructions = "Include 1 LT1 workout, 1 LT2 session, and a hill VO2 day, and one long run. One rest day is recommended.";
             break;
-    case "advanced":
-            experienceInstructions = "Include 2 LT1, 2 LT2 workouts, 1 hill sprint day, and a medium-long run. Rest day optional.";
+    case "Advanced":
+            experienceInstructions = "Include at least one double threshold day with 2 LT1 and 2 LT2 workouts in total for the week, 1 hill sprint day, and a long run. Rest day optional.";
             break;
     }
     
     const functions = [
         {
             name: "generateTrainingWeek",
-            description: "Generates a personalized 5K training plan week using Norwegian threshold training principles.",
+            description: "Generates a personalized training plan week using Norwegian threshold training principles.",
             parameters: {
                 type: "object",
                 properties: {
                     week: { type: "number", description: "The week number in the training plan." },
-                    totalMileage: { type: "number", description: "Total weekly mileage." },
-                    startDate: { type: "string", format: "date", description: "Start date of the training week." },
-                    endDate: { type: "string", format: "date", description: "End date of the training week." },
                     description: { type: "string", description: "Optional description of the training week." },
                     workouts: {
                         type: "array",
@@ -58,25 +47,119 @@ export function generatePlanPrompt(input: User, week: number) : [ChatCompletionM
                                     type: "string",
                                     enum: ["LT1", "LT2", "Hills", "MediumLongRun", "LongRun", "Easy", "Crosstrain", "Off"],
                                 },
-                                type: { type: "string",
-                                    enum: ["LT1", "LT2", "Hills", "MediumLongRun", "LongRun", "Easy", "Crosstrain", "Off"]
-                                 },
-                                duration: { type: "string" },
+                                workout: {
+                                    type: "array",
+                                    description: "The contents of the workout itself. Don't include strides.",
+                                    items: {
+                                        anyOf: [
+                                            {
+                                                type: "object",
+                                                properties: {
+                                                    type: {
+                                                        type: "string",
+                                                        description: "The type of interval or run segment",
+                                                        enum: ["1500", "3K", "5K", "10K", "Half Marathon", "Marathon", "LT2", "LT1", "Easy", "Hills"]
+                                                    },
+                                                    reps: {
+                                                        type: "number",
+                                                        description: "The amount of reps at the aforementioned pace"
+                                                    },
+                                                    duration: {
+                                                        type: "number",
+                                                        description: "The duration of each rep in seconds"
+                                                    },
+                                                    rest: {
+                                                        type: "number",
+                                                        description: "The duration of rest betwee each rep in seconds"
+                                                    }
+                                                },
+                                                required: ["duration"]
+                                            },
+                                            {
+                                                type: "number",
+                                                description: "Rest period between segments in seconds"
+                                            }
+                                        ]
+                                    }
+                                },
                                 targetHeartRate: { type: "string" },
                                 targetEffortLevel: { type: "string" },
-                                targetPace: { type: "string" },
                                 rest: { type: "string" },
-                                warmup: { type: "string" },
-                                cooldown: { type: "string" },
-                                totalDistance: { type: "string" },
-                                totalDuration: { type: "string" },
+                                warmup: { type: "array",
+                                    description: "The contents of the warmup. Don't include threshold in the warmup for LT1 workouts.",
+                                    items: {
+                                        anyOf: [
+                                            {
+                                                type: "object",
+                                                properties: {
+                                                    type: {
+                                                        type: "string",
+                                                        description: "The type of interval or run segment",
+                                                        enum: [, "LT2", "LT1", "Easy",]
+                                                    },
+                                                    reps: {
+                                                        type: "number",
+                                                        description: "The amount of reps at the aforementioned pace"
+                                                    },
+                                                    duration: {
+                                                        type: "number",
+                                                        description: "The duration of each rep in seconds"
+                                                    },
+                                                    rest: {
+                                                        type: "number",
+                                                        description: "The duration of rest betwee each rep in seconds"
+                                                    }
+                                                },
+                                                required: ["duration"]
+                                            },
+                                            {
+                                                type: "number",
+                                                description: "Rest period between segments in seconds"
+                                            }
+                                        ]
+                                    }
+                                },
+                                cooldown: { type: "array",
+                                    description: "The contents of the cooldown. Don't include threshold in the cooldown for LT1 workouts.",
+                                    items: {
+                                        anyOf: [
+                                            {
+                                                type: "object",
+                                                properties: {
+                                                    type: {
+                                                        type: "string",
+                                                        description: "The type of interval or run segment",
+                                                        enum: [, "LT2", "LT1", "Easy",]
+                                                    },
+                                                    reps: {
+                                                        type: "number",
+                                                        description: "The amount of reps at the aforementioned pace"
+                                                    },
+                                                    duration: {
+                                                        type: "number",
+                                                        description: "The duration of each rep in seconds"
+                                                    },
+                                                    rest: {
+                                                        type: "number",
+                                                        description: "The duration of rest betwee each rep in seconds"
+                                                    }
+                                                },
+                                                required: ["duration"]
+                                            },
+                                            {
+                                                type: "number",
+                                                description: "Rest period between segments in seconds"
+                                            }
+                                        ]
+                                    } 
+                                },
                                 notes: { type: "string" },
                                 },
-                                required: ["name", "date", "dayOfWeek", "tags", "type", "duration", "targetHeartRate", "targetEffortLevel", "targetPace", "totalDistance", "totalDuration"]
+                                required: ["name", "dayOfWeek", "tags","targetHeartRate", "targetEffortLevel", "totalDistance", "totalDuration"]
                         }
                     }
                 },
-            required: ["week", "totalMileage", "workouts"]
+            required: ["week", "workouts"]
             }
         }
     ];
@@ -92,6 +175,9 @@ export function generatePlanPrompt(input: User, week: number) : [ChatCompletionM
             Create week ${week} of a structured training plan from ${planStartDate} to ${goalRaceDate} for a ${goalRaceDistance} runner using Norwegian threshold training principles. Tailor the training to the runner’s experience and current fitness.
 
             Key principles:
+            - Do not include off days in the plan
+            - Every day in the plan should either be an easy run or workout.
+            - The training week should be ${getMileageProgression(input)[week - 1]} miles with a margin of 1 mile.
             - Max 2 LT1 (~80–83% max HR) and 2 LT2 (~85–88%) sessions per week
             - LT2 reps should be shorter and more intense than LT1
             - Include 1 hill sprint session (followed by LT1 flush)
@@ -103,12 +189,11 @@ export function generatePlanPrompt(input: User, week: number) : [ChatCompletionM
             - ${experienceInstructions}
             - Format: output workouts in order of training days (${trainingDays.join(", ")})
             - Record paces in miles
-
-            Pacing and mileage guidance:
-            - Use ${currentTrainingPaces} as the baseline for LT1, LT2, and Easy, respectively and gradually progress toward ${goalTrainingPaces} by ${goalRaceDate}. Always include the pace range for LT1, LT2, and Easy.
-            - Use ${currentMileage} as the starting point and gradually increase to ${goalMileage} by ${goalRaceDate}.
-            - This is week ${week}, so use paces proportionally closer to the current or goal depending on how far along the plan is.
-            - For race specific work, use the following paces: ${goalRacePaces}.
+            - Do not include warmup and cooldown for easy runs
+            - Hills should be run at 5k effort
+            - Threshold in warmups should be a maximum of 4 minutes in total, comprising of either 1 or 2 minute reps at either LT1 or LT2 pace, with half the time of rest between reps.
+            - LT2, VO2Max, and Race Specific workouts should include a threshold warmup and cooldown.
+            - The easy portion of warmups and cooldown should be at least 10 and 15 minutes long, respectively.
 
             Runner profile:
             - Experience: ${experience}

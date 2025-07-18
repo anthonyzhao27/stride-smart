@@ -1,8 +1,8 @@
-import { TrainingWorkout, Workout } from '@/lib/types';
+import { TrainingWorkout, LoggedWorkout } from '@/lib/types';
 
 type Props = {
     day: Date;
-    workouts: TrainingWorkout[] | Workout[];
+    workouts: TrainingWorkout[] | LoggedWorkout[];
 };
 
 export default function CalendarDay({ day, workouts }: Props) {
