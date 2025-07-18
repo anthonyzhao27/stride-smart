@@ -3,21 +3,11 @@ import { FaBars, FaTimes} from "react-icons/fa";
 import { FaMoon, FaSun } from "react-icons/fa";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { useAuth } from '@/context/AuthContext';
-import Image from 'next/image';
+import ProfileMenu from "@/components/ProfileMenu";
 
 export default function LayoutWithSidebar() {
     const [isOpen, setIsOpen] = useState(false);
 //   const [searchQuery, setSearchQuery] = useState("");
-    
-    const Profile = () => {
-        const { user } = useAuth();
-        return user ? (
-            <Image src={user?.photoURL ?? "https://ui-avatars.com/api/?name=User&background=ddd&color=555"} alt="Profile" width={24} height={24}className="w-10 h-10 rounded-full" />
-            ) : (
-            <p>Not logged in</p>
-        );
-    };
 
     const [isDark, setIsDark] = useState(false);
     useEffect(() => {
@@ -69,7 +59,7 @@ export default function LayoutWithSidebar() {
                     </div>
 
                     <div className="flex items-center space-x-4">
-                        <Profile />
+                        <ProfileMenu />
                     </div>
                 </div>
             </nav>
