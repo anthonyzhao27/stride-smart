@@ -5,6 +5,7 @@ import { useAuth } from '@/context/AuthContext';
 import { db } from '@/lib/firebase';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
 import { TrainingWeek, TrainingWorkout } from '@/lib/types';
+import { secToMin } from "@/lib/conversion";
 import TrainingCard from './TrainingCard';
 
 export default function TrainingLog() {
@@ -26,9 +27,10 @@ export default function TrainingLog() {
                     return {
                         id: doc.id,
                         week: data.week,
-                        startDate: data.startDate,
-                        endDate: data.endDate,
+                        startDate: data.startDate.toDate(),
+                        endDate: data.endDate.toDate(),
                         totalMileage: data.totalMileage,
+                        totalDuration: data.totalDuration,
                         description: data.description || '',
                         workouts: data.workouts as TrainingWorkout[] || []
                     } as TrainingWeek;
@@ -47,7 +49,7 @@ export default function TrainingLog() {
     if (loading) return <p className="text-center">Loading training logs...</p>;
 
     const formatDate = (date: Date) => {
-        return `${String(date.getMonth() + 1)}/${String(date.getDate() + 1).padStart(2, "0")}`;
+        return `${String(date.getMonth() + 1)}/${String(date.getDate()).padStart(2, "0")}`;
     }
 
     console.log("Training logs fetched:", logs);
@@ -68,18 +70,21 @@ export default function TrainingLog() {
                     </div>
                 ) : (
                     logs.flatMap((log, logIndex) => [
-                        <h1 key={`heading-${logIndex}`} className="my-4 text-2xl font-bold">
-                            Week {log.week}:  {formatDate(new Date(log.startDate))} - {formatDate(new Date(log.endDate))}
-                        </h1>,
+                        <div key={`heading-${logIndex}`} className="flex items-center justify-between my-4">
+                            <h1 className="text-2xl font-bold">
+                                Week {log.week}: {formatDate(log.startDate)} - {formatDate(log.endDate)}
+                            </h1>
+                            <div className="text-sm text-right text-gray-600 dark:text-gray-400">
+                                <div>Total Distance: {log.totalMileage} mi</div>
+                                <div>Total Duration: {secToMin(log.totalDuration)}</div>
+                            </div>
+                        </div>,
                         <div
                             key={`grid-${logIndex}`}
                             className="grid gap-6 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] animate-fade-in"
                         >
                             {log.workouts.map((workout, workoutIndex) => (
-                            <TrainingCard
-                                key={`workout-${logIndex}-${workoutIndex}`}
-                                workout={workout}
-                            />
+                                <TrainingCard key={`workout-${logIndex}-${workoutIndex}`} workout={workout} />
                             ))}
                         </div>,
                     ])

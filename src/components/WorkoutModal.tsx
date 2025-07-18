@@ -2,7 +2,7 @@
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { Workout } from '@/lib/types';
+import { LoggedWorkout } from '@/lib/types';
 
 export default function WorkoutModal({
     isOpen,
@@ -11,7 +11,7 @@ export default function WorkoutModal({
 }: {
     isOpen: boolean;
     onClose: () => void;
-    workout: Workout;
+    workout: LoggedWorkout;
 }) {
     if (!workout) return null;
 

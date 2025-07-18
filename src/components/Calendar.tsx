@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { getStartofCalendarMonth, getDaysForCalendar } from '@/lib/calendarUtils';
 import { fetchWorkoutsForMonth } from '@/lib/firebaseUtils';
 import CalendarDay from './CalendarDay';
-import { TrainingWorkout, Workout } from '@/lib/types';
+import { TrainingWorkout, LoggedWorkout } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Calendar() {
     const [calendarDays, setCalendarDays] = useState<Date[]>([]);
-    const [workouts, setWorkouts] = useState<Record<string, Workout[]>>({});
+    const [workouts, setWorkouts] = useState<Record<string, LoggedWorkout[]>>({});
     const { user } = useAuth();
 
     useEffect(() => {

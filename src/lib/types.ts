@@ -1,4 +1,4 @@
-export type Workout = {
+export type LoggedWorkout = {
     id: string;
     name: string;
     date: string;
@@ -28,24 +28,41 @@ export type FormData = {
     notes: string;
 }
 
-export type TrainingWorkout = {
-    id: string;
-    name: string;
-    date: Date;
-    dayOfWeek: string;
-    tags: 'LT1' | 'LT2' | 'Hills' | 'MediumLongRun' | 'LongRun' | 'Easy' | 'Crosstrain' | 'Off';
+export type Pace = number | [number, number];
+
+export type WorkoutSegment = WorkoutSet | { rest: number };
+
+export type PaceEntry = {
     type: string;
-    duration: string;
-    targetHeartRate: string;
-    targetEffortLevel: string;
-    targetPace: string;
-    rest?: string;
-    warmup?: string;
-    cooldown?: string;
-    totalDistance: string;
-    totalDuration: string;
-    notes?: string;
-}
+    pace: Pace;
+};
+
+export type TrainingWorkout = {
+  name: string;
+  date: Date;
+  dayOfWeek: string;
+  tags:
+    | 'LT1'
+    | 'LT2'
+    | 'Hills'
+    | 'MediumLongRun'
+    | 'LongRun'
+    | 'Easy'
+    | 'VO2Max'
+    | 'RaceSpecific'
+    | 'Speed'
+    | 'Crosstrain'
+    | 'Off';
+  workout: WorkoutSegment[];
+  distance: number;
+  duration: number;
+  targetHeartRate?: string;
+  targetPace: PaceEntry[];
+  rest?: number;
+  warmup?: WorkoutSegment[];
+  cooldown?: WorkoutSegment[];
+  notes?: string;
+};
 
 export type TrainingWeek = {
     id: string;
@@ -53,6 +70,7 @@ export type TrainingWeek = {
     startDate: Date;
     endDate: Date;
     totalMileage: number;
+    totalDuration: number;
     description?: string;
     workouts: TrainingWorkout[];
 }
@@ -62,11 +80,35 @@ export type User = {
     trainingDays: string[];
     currentMileage: number;
     currentRaceTime: string;
-    currentRaceDistance: "Mile" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon";
+    currentRaceDistance: RaceDist;
     goalMileage: number;
     goalRaceTime: string;
-    goalRaceDistance: "Mile" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon";
+    goalRaceDistance: RaceDist;
     goalRaceDate: string;
     planStartDate: string;
     numWeeks: number;
+}
+
+export type WorkoutSet = {
+    type: "1500" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon" | "LT2" | "LT1" | "Easy" | "Hills";
+    reps?: number;
+    duration: number;
+    rest?: number;
+}
+
+export type RaceDist = "1500" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon"
+
+export type TrainingDist = "1500" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon" | "LT1" | "LT2" | "Easy" | "Hills"
+
+export type TrainingPaces = {
+    "1500": number;
+    "3K": number;
+    "5K": number;
+    "10K": number;
+    "Half Marathon": number;
+    "Marathon": number;
+    "LT1": [number, number];
+    "LT2": [number, number];
+    "Easy": [number, number];
+    "Hills": [number, number];
 }

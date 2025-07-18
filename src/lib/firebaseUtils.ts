@@ -1,9 +1,9 @@
 // lib/firebaseUtils.ts
 import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { TrainingWorkout, Workout } from "@/lib/types";
+import { TrainingWorkout, LoggedWorkout } from "@/lib/types";
 
-export async function fetchWorkoutsForMonth(start: Date, uid: string): Promise<Record<string, Workout[]>> {
+export async function fetchWorkoutsForMonth(start: Date, uid: string): Promise<Record<string, LoggedWorkout[]>> {
     const end = new Date(start);
     end.setDate(start.getDate() + 42);
 
@@ -15,7 +15,7 @@ export async function fetchWorkoutsForMonth(start: Date, uid: string): Promise<R
 
     
     const snapshot = await getDocs(q);
-    const result: Record<string, Workout[]> = {};
+    const result: Record<string, LoggedWorkout[]> = {};
     
     if (snapshot.empty) {
         console.log("No workouts found for the month.");
@@ -26,7 +26,7 @@ export async function fetchWorkoutsForMonth(start: Date, uid: string): Promise<R
         const data = doc.data();
         const ts = data.timestamp.toDate();
 
-        const workout: Workout = {
+        const workout: LoggedWorkout = {
             id: doc.id,
             name: data.name,
             timestamp: ts,

@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { db } from '@/lib/firebase';
 import { query, orderBy, collection, onSnapshot, doc, deleteDoc, getDoc } from 'firebase/firestore';
-import { Workout, FormData } from '@/lib/types';
+import { LoggedWorkout, FormData } from '@/lib/types';
 import WorkoutForm from './WorkoutForm';
 import { FaPlus } from 'react-icons/fa';
 import { useAuth } from "@/context/AuthContext";
@@ -13,7 +13,7 @@ import MileageChart from '@/components/MileageChart';
 import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
-    const [workouts, setWorkouts] = useState<Workout[]>([]);
+    const [workouts, setWorkouts] = useState<LoggedWorkout[]>([]);
     const [showForm, setShowForm] = useState(false);
     type WorkoutWithFormData = { id: string } & Partial<FormData>;
     const [selectedWorkout, setSelectedWorkout] = useState<WorkoutWithFormData | null>(null);
@@ -30,7 +30,7 @@ export default function Dashboard() {
         }
     }, [user, router]);
 
-    function convertWorkoutToFormData(workout: Workout): Partial<FormData> {
+    function convertWorkoutToFormData(workout: LoggedWorkout): Partial<FormData> {
 
         const hours = Math.floor(workout.duration / 3600);
         const minutes = Math.floor((workout.duration % 3600) / 60);
@@ -54,7 +54,7 @@ export default function Dashboard() {
     }
 
 
-    const handleEdit = (workout: Workout) => {
+    const handleEdit = (workout: LoggedWorkout) => {
         const formDataDefaults = convertWorkoutToFormData(workout);
         setSelectedWorkout({ id: workout.id, ...formDataDefaults });
         setShowForm(true);
