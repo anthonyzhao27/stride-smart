@@ -24,10 +24,10 @@ export default function ProfileMenu() {
                         <Menu.Item>
                             {({ active }) => (
                                 <button
-                                onClick={() => signOut(auth)}
-                                className={`${
-                                    active ? "bg-gray-100" : ""
-                                } group flex w-full items-center rounded-md px-2 py-2 text-sm text-gray-700`}
+                                    onClick={() => signOut(auth)}
+                                    className={`${
+                                        active ? "bg-red-100" : ""
+                                    } group flex w-full items-center rounded-md px-2 py-2 text-sm text-red-600`}
                                 >
                                     Sign out
                                 </button>
