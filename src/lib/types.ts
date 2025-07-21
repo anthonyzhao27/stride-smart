@@ -5,7 +5,7 @@ export type LoggedWorkout = {
     time: string;
     timestamp: Date;
     duration: number;
-    distance: number;
+    distance?: number;
     unit: string;
     type: string;
     effortLevel: string;
@@ -77,6 +77,7 @@ export type TrainingWeek = {
 
 export type User = {
     experience: string;
+    doubleThresholdDays?: number;
     trainingDays: string[];
     currentMileage: number;
     currentRaceTime: string;

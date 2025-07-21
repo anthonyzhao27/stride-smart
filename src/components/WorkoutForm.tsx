@@ -70,6 +70,8 @@ export default function WorkoutForm({
         }
     };
 
+    const workoutType = watch('type');
+
     const onSubmit = async (data: FormData) => {
         if (!data.name) {
             const hour = parseInt(data.time.split(':')[0], 10);
@@ -205,42 +207,46 @@ export default function WorkoutForm({
                             <p className="h-5 text-sm text-red-500">{errors.seconds ? "Invalid seconds" : ""}</p>
                         </div>
                     </div>
+                
+                    {(workoutType === 'Run' || workoutType === 'Bike') && (
+                        <>
+                            {/* Distance + Unit */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    value={distance !== undefined ? String(distance) : ''}
+                                    placeholder="Distance"
+                                    onChange={handleDistanceChange}
+                                    onPaste={(e) => {
+                                    const pasted = e.clipboardData.getData('text').trim();
+                                    const regex = /^(0|[1-9]\d*)(\.\d{0,2})?$/;
+                                    if (!regex.test(pasted)) e.preventDefault();
+                                    }}
+                                    className="flex-1 px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                />
+                                <input type="hidden" {...register('distance', { required: "Distance is required" })} />
+                                <Controller
+                                    name="unit"
+                                    control={control}
+                                    rules={{ required: true }}
+                                    render={({ field }) => (
+                                        <select
+                                        {...field}
+                                        onChange={(e) => {
+                                            // Just update the unit, no conversion
+                                            field.onChange(e);
+                                        }}
+                                        className="w-24 px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
+                                        >
+                                        <option value="mi">mi</option>
+                                        <option value="km">km</option>
+                                        </select>
+                                    )}
+                                />
+                            </div>
+                        </>
+                    )}
 
-                    {/* Distance + Unit */}
-                    <div className="flex items-center gap-2">
-                        <input
-                            type="number"
-                            value={distance !== undefined ? String(distance) : ''}
-                            placeholder="Distance"
-                            onChange={handleDistanceChange}
-                            onPaste={(e) => {
-                            const pasted = e.clipboardData.getData('text').trim();
-                            const regex = /^(0|[1-9]\d*)(\.\d{0,2})?$/;
-                            if (!regex.test(pasted)) e.preventDefault();
-                            }}
-                            className="flex-1 px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                        />
-                        <input type="hidden" {...register('distance', { required: "Distance is required" })} />
-
-                        <Controller
-                            name="unit"
-                            control={control}
-                            rules={{ required: true }}
-                            render={({ field }) => (
-                                <select
-                                {...field}
-                                onChange={(e) => {
-                                    // Just update the unit, no conversion
-                                    field.onChange(e);
-                                }}
-                                className="w-24 px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-green-500"
-                                >
-                                <option value="mi">mi</option>
-                                <option value="km">km</option>
-                                </select>
-                            )}
-                        />
-                    </div>
                 </div>
 
                 {/* Effort */}

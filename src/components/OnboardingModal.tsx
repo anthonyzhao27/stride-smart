@@ -6,24 +6,28 @@ import { User } from "@/lib/types";
 import { useAuth } from "@/context/AuthContext";
 import { doc, setDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { useState } from 'react';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 export default function OnboardingModal({
-    isOpen,
     onClose,
     onSubmit,
     }: {
-    isOpen: boolean;
     onClose: () => void;
     onSubmit: (formData: User) => void;
     }) {
     const { user } = useAuth();
     const uid = user?.uid;
+
+    const [isOpen] = useState(true);
     
     const {
         register,
         handleSubmit,
+        watch,
+        setError,
+        clearErrors,
         formState: { errors },
     } = useForm<User & {
         currentHours: number;
@@ -38,6 +42,10 @@ export default function OnboardingModal({
         },
     });
 
+    const experience = watch('experience');
+
+    const trainingDays = watch('trainingDays', []);
+
     const onFormSubmit = async (data: User & {
         currentHours: number;
         currentMinutes: number;
@@ -47,6 +55,20 @@ export default function OnboardingModal({
         goalSeconds: number;
     })=> {
         if (!uid) return;
+        console.log(uid);
+
+        if (trainingDays.length < 4) {
+            setError("trainingDays", {
+                type: "manual",
+                message: "Select more than 4 training days",
+            });
+            return;
+        }
+
+        console.log(trainingDays)
+
+        // Clear error if previously set
+        clearErrors("trainingDays");
 
         function formatTime(h?: number, m?: number, s?: number): string {
             const pad = (n: number) => n.toString().padStart(2, "0");
@@ -87,6 +109,7 @@ export default function OnboardingModal({
             goalRaceDate: data.goalRaceDate,
             planStartDate: data.planStartDate,
             numWeeks: getWeeksBetweenDates(data.planStartDate, data.goalRaceDate),
+            ...(data.doubleThresholdDays != null && { doubleThresholdDays: Number(data.doubleThresholdDays) })
         };
 
         try {
@@ -107,7 +130,7 @@ export default function OnboardingModal({
     };
 
     return (
-        <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+        <Dialog open={isOpen} onClose={() => {}} className="relative z-50">
         <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
         <div className="fixed inset-0 flex items-center justify-center p-4">
             <Dialog.Panel className="w-full max-w-md p-6 space-y-4 bg-white shadow-xl rounded-2xl dark:bg-gray-900">
@@ -118,20 +141,39 @@ export default function OnboardingModal({
                 <form onSubmit={handleSubmit(onFormSubmit)} className="max-h-[80vh] pr-1 space-y-4 overflow-y-auto">
                     {/* Experience */}
                     <div>
-                    <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">
-                        Experience Level
-                    </label>
-                    <select
-                        {...register('experience', { required: true })}
-                        className="w-full p-2 text-gray-900 bg-white border rounded-md dark:bg-gray-800 dark:text-white"
-                    >
-                        <option value="">Select experience</option>
-                        <option value="Beginner">Beginner</option>
-                        <option value="Intermediate">Intermediate</option>
-                        <option value="Advanced">Advanced</option>
-                    </select>
-                    {errors.experience && <p className="text-sm text-red-500">Required</p>}
+                        <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+                            Experience Level
+                        </label>
+                        <select
+                            {...register('experience', { required: true })}
+                            className="w-full p-2 text-gray-900 bg-white border rounded-md dark:bg-gray-800 dark:text-white"
+                        >
+                            <option value="">Select experience</option>
+                            <option value="Beginner">Beginner</option>
+                            <option value="Intermediate">Intermediate</option>
+                            <option value="Advanced">Advanced (Double Threshold) </option>
+                        </select>
+                        {errors.experience && <p className="text-sm text-red-500">Required</p>}
                     </div>
+
+                    {experience === 'Advanced' && (
+                        <>
+                            <div>
+                                <label className="block mb-1 text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    Double Threshold Days
+                                </label>
+                                <select
+                                    {...register('doubleThresholdDays', { required: true })}
+                                    className="w-full p-2 text-gray-900 bg-white border rounded-md dark:bg-gray-800 dark:text-white"
+                                >
+                                    <option value='0'>0</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                                {errors.experience && <p className="text-sm text-red-500">Required</p>}
+                            </div>
+                        </>
+                    )}
 
                     {/* Current weekly mileage */}
                     <div>
@@ -187,6 +229,9 @@ export default function OnboardingModal({
                         ))}
                         </div>
                     </div>
+                    {trainingDays.length < 4 && (
+                        <p className="mt-1 text-sm text-red-500">Please select 4 or more training days.</p>
+                    )}
 
                     {/* Current time */}
                     <div className="space-y-1">
