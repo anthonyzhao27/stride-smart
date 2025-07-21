@@ -41,7 +41,7 @@ export default function SignUpForm() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
                 />
             </div>
             <div>
@@ -53,7 +53,7 @@ export default function SignUpForm() {
                     onChange={(e) => setPassword(e.target.value)}
                     autoComplete="new-password"
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
                 />
             </div>
             <div>
@@ -65,16 +65,25 @@ export default function SignUpForm() {
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     autoComplete="new-password"
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
                 />
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && <p className="text-sm text-red-500">{error}</p>}
             <button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-green-300 transition duration-150 ease-in-out"
+                className="w-full px-4 py-2 font-bold text-white transition duration-150 ease-in-out bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring focus:ring-green-300"
             >
                 Sign Up
             </button>
+            <p className="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
+                Have an account?{" "}
+                <a
+                    href="/login"
+                    className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                >
+                    Log in
+                </a>
+            </p>
         </form>
     );
 }

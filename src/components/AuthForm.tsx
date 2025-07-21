@@ -44,7 +44,7 @@ export default function AuthForm() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
                 />
             </div>
             <div>
@@ -55,20 +55,20 @@ export default function AuthForm() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
+                    className="block w-full px-3 py-2 mt-1 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200"
                 />
             </div>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
+            {error && <p className="text-sm text-red-500">{error}</p>}
             <button
                 type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring focus:ring-blue-300 transition duration-150 ease-in-out"
+                className="w-full px-4 py-2 font-bold text-white transition duration-150 ease-in-out bg-green-600 rounded hover:bg-green-700 focus:outline-none focus:ring focus:ring-blue-300"
             >
                 Login
             </button>
             <button
                 type="button"
                 onClick={handleGoogleSignIn}
-                className="flex items-center justify-center w-full gap-3 rounded-lg border border-gray-300 bg-white px-4 py-2 hover:bg-gray-100 transition-colors"
+                className="flex items-center justify-center w-full gap-3 px-4 py-2 transition-colors bg-white border border-gray-300 rounded-lg hover:bg-gray-100"
                 >
                 <Image
                     src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
@@ -77,8 +77,17 @@ export default function AuthForm() {
                     height={20}
                     priority
                 />
-                <span className="text-sm text-gray-700 font-medium">Sign in with Google</span>
+                <span className="text-sm font-medium text-gray-700">Sign in with Google</span>
             </button>
+            <p className="mt-2 text-sm text-center text-gray-600 dark:text-gray-400">
+                Don’t have an account?{" "}
+                <a
+                    href="/signup"
+                    className="font-medium text-blue-600 hover:underline dark:text-blue-400"
+                >
+                    Sign up
+                </a>
+            </p>
         </form>
     );
 }
