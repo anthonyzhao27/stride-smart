@@ -1,6 +1,6 @@
 import { TrainingWorkout, WorkoutSet, WorkoutSegment } from '@/lib/types';
 import { useState } from "react";
-import { formatPace } from "@/lib/training/getTrainingPaces";
+import { formatPace } from "@/lib/training/utils/getTrainingPaces";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { secToMin } from "@/lib/conversion";
 

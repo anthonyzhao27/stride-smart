@@ -173,7 +173,6 @@ export default function Dashboard() {
             <>
                 {showOnboarding && (
                     <OnboardingModal
-                        isOpen={true}
                         onClose={() => setShowOnboarding(false)} // optional skip
                         onSubmit={() => setShowOnboarding(false)} // hides modal after save
                     />

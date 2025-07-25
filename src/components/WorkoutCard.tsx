@@ -108,7 +108,7 @@ export default function WorkoutCard({ workout, onDelete, onEdit }: { workout: Lo
 
                     {/* Stats */}
                     <div className="mt-2 space-y-1 text-sm text-gray-700 dark:text-gray-300">
-                        <p><span className="font-semibold">Distance:</span> {workout.distance} {workout.unit}</p>
+                        {workout.distance ? <p><span className="font-semibold">Distance:</span> {workout.distance} {workout.unit}</p> : null}
                         <p><span className="font-semibold">Duration:</span> {hours ? `${hours}h ` : ""}{minutes ? `${minutes}m ` : ""}{hours && minutes ? "" : `${seconds}s`}</p>
                         <p><span className="font-semibold">Type:</span> {workout.type}</p>
                         <p><span className="font-semibold">Effort:</span> {workout.effortLevel}</p>
