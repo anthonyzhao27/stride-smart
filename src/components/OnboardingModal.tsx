@@ -109,7 +109,7 @@ export default function OnboardingModal({
             goalRaceDate: data.goalRaceDate,
             planStartDate: data.planStartDate,
             numWeeks: getWeeksBetweenDates(data.planStartDate, data.goalRaceDate),
-            ...(data.doubleThresholdDays != null && { doubleThresholdDays: Number(data.doubleThresholdDays) })
+            ...(data.numDaysDoubleThreshold != null && { doubleThresholdDays: Number(data.numDaysDoubleThreshold) })
         };
 
         try {
@@ -163,7 +163,7 @@ export default function OnboardingModal({
                                     Double Threshold Days
                                 </label>
                                 <select
-                                    {...register('doubleThresholdDays', { required: true })}
+                                    {...register('numDaysDoubleThreshold', { required: true })}
                                     className="w-full p-2 text-gray-900 bg-white border rounded-md dark:bg-gray-800 dark:text-white"
                                 >
                                     <option value='0'>0</option>
