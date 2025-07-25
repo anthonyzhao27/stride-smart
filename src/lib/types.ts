@@ -53,14 +53,14 @@ export type TrainingWorkout = {
     | 'Speed'
     | 'Crosstrain'
     | 'Off';
-  workout: WorkoutSegment[];
+  workout?: WorkoutSegment[];
   distance: number;
   duration: number;
   targetHeartRate?: string;
   targetPace: PaceEntry[];
   rest?: number;
   warmup?: WorkoutSegment[];
-  cooldown?: WorkoutSegment[];
+  cooldown?: string;
   notes?: string;
 };
 
@@ -77,7 +77,7 @@ export type TrainingWeek = {
 
 export type User = {
     experience: string;
-    doubleThresholdDays?: number;
+    numDaysDoubleThreshold?: number;
     trainingDays: string[];
     currentMileage: number;
     currentRaceTime: string;
@@ -91,18 +91,19 @@ export type User = {
 }
 
 export type WorkoutSet = {
-    type: "1500" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon" | "LT2" | "LT1" | "Easy" | "Hills";
+    type: "1500" | "Mile" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon" | "LT2" | "LT1" | "Easy" | "Hills";
     reps?: number;
     duration: number;
     rest?: number;
 }
 
-export type RaceDist = "1500" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon"
+export type RaceDist = "1500" | "Mile" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon"
 
-export type TrainingDist = "1500" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon" | "LT1" | "LT2" | "Easy" | "Hills"
+export type TrainingDist = "1500" | "Mile" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon" | "LT1" | "LT2" | "Easy" | "Hills"
 
 export type TrainingPaces = {
     "1500": number;
+    "Mile": number;
     "3K": number;
     "5K": number;
     "10K": number;
@@ -112,4 +113,18 @@ export type TrainingPaces = {
     "LT2": [number, number];
     "Easy": [number, number];
     "Hills": [number, number];
+}
+
+export type WorkoutDays = {
+    doubleThresholdDays?: string[];
+    LT1Day?: string;
+    LT2Day?: string;
+    VO2RaceDay?: string;
+    LongRunDay?: string;
+}
+
+export type Mileage = {
+    mileage: number;
+    raceSpecific: boolean;
+    taper: boolean;
 }

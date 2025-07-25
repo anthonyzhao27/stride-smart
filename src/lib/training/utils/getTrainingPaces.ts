@@ -1,8 +1,9 @@
-import vdot from "./vdot.json";
+import vdot from "../vdot.json";
 import { RaceDist, TrainingPaces } from "@/lib/types"
 
 type RacePaces = {
     "1500": number;
+    "Mile": number;
     "3K": number;
     "5K": number;
     "10K": number;
@@ -43,6 +44,7 @@ function getTrainingPacesFromTime(
     }
     return {
         "1500": toSecondsFlexible(res["1500"]) / 0.93,
+        "Mile": toSecondsFlexible(res["Mile"]) / 1.61,
         "3K": toSecondsFlexible(res["3K"]) / 1.86,
         "5K": toSecondsFlexible(res["5K"]) / 3.11,
         "10K": toSecondsFlexible(res["10K"]) / 6.21,
@@ -64,6 +66,7 @@ export function getTrainingPaces(
 
     const result: TrainingPaces = {
         "1500": 0,
+        "Mile": 0,
         "3K": 0,
         "5K": 0,
         "10K": 0,
@@ -76,7 +79,7 @@ export function getTrainingPaces(
     };
 
     for (const key of Object.keys(goalPaces).filter(k =>
-        ["1500", "3K", "5K", "10K", "Half Marathon", "Marathon"].includes(k)
+        ["1500", "Mile", "3K", "5K", "10K", "Half Marathon", "Marathon"].includes(k)
     ) as RaceDist[]) {
         const interpolated = currentPaces[key] + (goalPaces[key] - currentPaces[key]) * ((week - 1) / (numWeeks - 1));
         result[key] = interpolated;
