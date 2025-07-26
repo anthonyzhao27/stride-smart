@@ -58,7 +58,6 @@ export type TrainingWorkout = {
   duration: number;
   targetHeartRate?: string;
   targetPace: PaceEntry[];
-  rest?: number;
   warmup?: WorkoutSegment[];
   cooldown?: string;
   notes?: string;
@@ -119,7 +118,7 @@ export type WorkoutDays = {
     doubleThresholdDays?: string[];
     LT1Day?: string;
     LT2Day?: string;
-    VO2RaceDay?: string;
+    HillsRaceDay?: string;
     LongRunDay?: string;
 }
 

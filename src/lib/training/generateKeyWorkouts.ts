@@ -10,7 +10,7 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
 
     const raceSpecific = mileageProgression[week - 1].raceSpecific;
 
-    const { doubleThresholdDays, LT1Day, LT2Day, VO2RaceDay, LongRunDay } = assignWorkoutDays(input, raceSpecific);
+    const { doubleThresholdDays, LT1Day, LT2Day, HillsRaceDay, LongRunDay } = assignWorkoutDays(input, raceSpecific);
     
     const thresholds = getThresholdTimeTargets(input, week);
 
@@ -18,7 +18,7 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
 
     const numLT2Workouts = (doubleThresholdDays ? doubleThresholdDays.length : 0) + (LT2Day ? 1 : 0);
 
-    const hasVO2RaceDay = VO2RaceDay !== undefined;
+    const hasHillsRaceDay = HillsRaceDay !== undefined;
     const hasLongRunDay = LongRunDay !== undefined;
     
     const messages: ChatCompletionMessageParam[] = [
@@ -32,7 +32,7 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
             
             - For threshold workouts, use time-based durations, not distance
             - Generate exactly ${numLT1Workouts} LT1 workouts and ${numLT2Workouts} LT2 workouts.
-            ${hasVO2RaceDay && `- Generate exactly ${Number(VO2RaceDay)} ${raceSpecific ? `${input.goalRaceDistance} specific`: 'hill @5k effort'} workout.`}
+            ${hasHillsRaceDay && `- Generate exactly ${Number(HillsRaceDay)} ${raceSpecific ? `${input.goalRaceDistance} specific`: 'hill @5k effort'} workout.`}
             ${hasLongRunDay && `- Generate exactly ${LongRunDay ? 1 : 0} long run.
             ${input.trainingDays.length == 4 ? "- The long run should start easy and progress into LT1." : ""}`}
             - Each LT1 workout, excluding warmup and cooldown, should total ${thresholds.LT1} minutes, broken into reps of 6 or 9, or 12 min reps
@@ -45,7 +45,7 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
             - Provide output as an array of workouts with name, tags, and full breakdown of reps/warmups/cooldowns
             - Threshold in warmups should be a maximum of 4 minutes in total, comprising of either 1 or 2 minute reps at either LT1 or LT2 pace, with half the time of rest between reps.
             - LT2, VO2Max, and Race Specific workouts should include a threshold warmup and cooldown.
-            - The easy portion of warmups and cooldown should be at least 10 and 15 minutes long, respectively.
+            - The easy portion of warmups and cooldown should both be at least 15 minutes long.
             - Include a maximum of 1, at most 4, reps of 3 minutes at LT1 pace in the cooldown of Hill workouts.
             - Include exactly 1 LT1 rep in the cooldown of LT2 workouts.
             `.trim()
@@ -108,7 +108,6 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
                                     },
                                     targetHeartRate: { type: "string" },
                                     targetEffortLevel: { type: "string" },
-                                    rest: { type: "string" },
                                     warmup: { type: "array",
                                         description: "The contents of the warmup. Don't include threshold in the warmup for LT1 workouts.",
                                         items: {

@@ -35,7 +35,7 @@ export function assignWorkoutDays(user: User, raceSpecific: boolean): WorkoutDay
     const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
     if (trainingDays.length == 4) {
-        return raceSpecific ? {LT2Day: trainingDays[1], VO2RaceDay: trainingDays[3]} : { LongRunDay: trainingDays[1], LT2Day: trainingDays[3]};
+        return raceSpecific ? {LT2Day: trainingDays[1], HillsRaceDay: trainingDays[3]} : { LongRunDay: trainingDays[1], LT2Day: trainingDays[3]};
     } else if (trainingDays.length === 5) {
         const missingDays = weekdays.filter(day => !trainingDays.includes(day));
 
@@ -48,21 +48,21 @@ export function assignWorkoutDays(user: User, raceSpecific: boolean): WorkoutDay
                 return {
                     LT1Day: reorderedTrainingDays[0][0],
                     LT2Day: reorderedTrainingDays[0][2],
-                    VO2RaceDay: reorderedTrainingDays[0][4],
+                    HillsRaceDay: reorderedTrainingDays[0][4],
                     LongRunDay: reorderedTrainingDays[0][1]
                 } as WorkoutDays;
             case 4:
                 return {
                     LT1Day: reorderedTrainingDays[0][1],
                     LT2Day: reorderedTrainingDays[0][3],
-                    VO2RaceDay: reorderedTrainingDays[1][0],
+                    HillsRaceDay: reorderedTrainingDays[1][0],
                     LongRunDay: reorderedTrainingDays[0][0]
                 } as WorkoutDays;
             case 3:
                 return {
                     LT1Day: reorderedTrainingDays[0][0],
                     LT2Day: reorderedTrainingDays[0][2],
-                    VO2RaceDay: reorderedTrainingDays[1][1],
+                    HillsRaceDay: reorderedTrainingDays[1][1],
                     LongRunDay: reorderedTrainingDays[0][1]
                 } as WorkoutDays;
         }
@@ -75,7 +75,7 @@ export function assignWorkoutDays(user: User, raceSpecific: boolean): WorkoutDay
         return {
             LT1Day: reorderedTrainingDays[1],
             LT2Day: reorderedTrainingDays[3],
-            VO2RaceDay: reorderedTrainingDays[5],
+            HillsRaceDay: reorderedTrainingDays[5],
             LongRunDay: reorderedTrainingDays[0]
         } as WorkoutDays;
     } else {
@@ -84,20 +84,20 @@ export function assignWorkoutDays(user: User, raceSpecific: boolean): WorkoutDay
                 return {
                     LT1Day: trainingDays[1],
                     LT2Day: trainingDays[3],
-                    VO2RaceDay: trainingDays[5],
+                    HillsRaceDay: trainingDays[5],
                     LongRunDay: trainingDays[6]
                 } as WorkoutDays;
             case 1:
                 return {
                     doubleThresholdDays: [trainingDays[1]],
                     LT2Day: trainingDays[3],
-                    VO2RaceDay: trainingDays[5],
+                    HillsRaceDay: trainingDays[5],
                     LongRunDay: trainingDays[6]
                 } as WorkoutDays;
             case 2:
                 return {
                     doubleThresholdDays: [trainingDays[1], trainingDays[3]],
-                    VO2RaceDay: trainingDays[5],
+                    HillsRaceDay: trainingDays[5],
                     LongRunDay: trainingDays[6]
                 } as WorkoutDays;
         }
