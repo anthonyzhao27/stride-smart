@@ -1,7 +1,7 @@
 import { User } from "@/lib/types";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { OpenAI } from "openai";
-import { getMileageProgression } from "@/lib/training/getMileageProgression";
+import { getMileageProgression } from "@/lib/training/utils/getMileageProgression";
 
 
 export function generatePlanPrompt(input: User, week: number) : [ChatCompletionMessageParam[], OpenAI.Chat.Completions.ChatCompletionCreateParams.Function[]] {
@@ -38,7 +38,7 @@ export function generatePlanPrompt(input: User, week: number) : [ChatCompletionM
                             properties: {
                                 name: { type: "string",
                                         description: "Name of the workout, including the type of workout."
-                                 },
+                                },
                                 dayOfWeek: {
                                     type: "string",
                                     enum: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],

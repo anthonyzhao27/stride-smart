@@ -17,3 +17,19 @@ export function getWeekStartDate(startDate: Date, week: number): Date {
     targetMonday.setDate(firstMonday.getDate() + (week - 1) * 7);
     return targetMonday;
 }
+
+export function getDayToDate(startDate: Date, week: number): Map<string, Date> {
+    const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+    const mondayDate = getWeekStartDate(startDate, week);
+
+    const map = new Map<string, Date>();
+
+    weekdays.forEach((weekday, index) => {
+        const date = new Date(mondayDate);
+        date.setDate(mondayDate.getDate() + index);
+        map.set(weekday, date);
+    });
+
+    return map;
+}

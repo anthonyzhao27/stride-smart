@@ -20,7 +20,7 @@ export function calculateDistanceAndDurationFromWorkoutSegments(workoutSegments:
 
         distance += 1 / paceValue * set.duration * (set.reps || 1);
         
-        duration += (set.duration + (set.rest || 0)) * (set.reps || 1)
+        duration += (set.duration + (set.rest || 0)) * (set.reps || 1);
     });
 
     return { distance, duration };
