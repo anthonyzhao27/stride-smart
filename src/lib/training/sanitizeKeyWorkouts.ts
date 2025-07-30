@@ -7,7 +7,7 @@ import { getTrainingPacesFromWorkoutSegments } from "./utils/getTrainingPacesFro
 import { calculateDistanceAndDurationFromWorkoutSegments } from "./utils/calculateDistanceAndDurationFromWorkoutSegments";
 import { getTrainingPaces } from "./utils/getTrainingPaces";
 
-export function sanitizeKeyWorkouts(input: User, workouts: Partial<TrainingWorkout>[], week: number): TrainingWeek {
+export function sanitizeKeyWorkouts(input: User, workouts: TrainingWorkout[], week: number): TrainingWeek {
     const mileageProgression = getMileageProgression(input);
     
     const raceSpecific = mileageProgression[week - 1].raceSpecific;

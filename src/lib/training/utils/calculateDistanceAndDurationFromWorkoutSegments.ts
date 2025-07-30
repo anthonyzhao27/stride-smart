@@ -23,5 +23,5 @@ export function calculateDistanceAndDurationFromWorkoutSegments(workoutSegments:
         duration += (set.duration + (set.rest || 0)) * (set.reps || 1);
     });
 
-    return { distance, duration };
+    return { distance: Math.round(distance / 0.5) * 0.5, duration: Math.round(duration / 0.5) * 0.5 };
 }

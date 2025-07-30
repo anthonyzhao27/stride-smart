@@ -1,13 +1,11 @@
 import { db } from "@/lib/firebase";
 import { doc, setDoc } from "firebase/firestore";
 
-import { OpenAI } from "openai";
-
 import { NextResponse } from "next/server";
 
-import { generateKeyWorkouts } from "@/lib/training/generateKeyWorkouts";
+import { generateCompleteWeek } from "@/lib/training/generateCompleteWeek";
 
-import { postprocessPlan } from "@/lib/ai/postprocessPlan";
+// import { postprocessPlan } from "@/lib/ai/postprocessPlan";
 
 
 export async function POST(req: Request) {
@@ -16,12 +14,11 @@ export async function POST(req: Request) {
 
     const allPlans = [];
 
-    for (let week = 1; week <= 3; week++) {
-        let plan = generateKeyWorkouts(user, week);
+    for (let week = 1; week <= 4; week++) {
+        const plan = await generateCompleteWeek(user, week);
     
         try {
             console.log('Data being sent to Firestore:', JSON.stringify(plan, null, 2));
-            plan = postprocessPlan(plan, week, user);
             const planRef = doc(db, "users", uid, "plans", `week_${week}`);
             await setDoc(planRef, plan);
 
