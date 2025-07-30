@@ -10,7 +10,7 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
 
     const raceSpecific = mileageProgression[week - 1].raceSpecific;
 
-    const { doubleThresholdDays, LT1Day, LT2Day, HillsRaceDay, LongRunDay } = assignWorkoutDays(input, raceSpecific);
+    const { doubleThresholdDays, LT1Day, LT2Day, HillsRaceDay } = assignWorkoutDays(input, raceSpecific);
     
     const thresholds = getThresholdTimeTargets(input, week);
 
@@ -19,7 +19,6 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
     const numLT2Workouts = (doubleThresholdDays ? doubleThresholdDays.length : 0) + (LT2Day ? 1 : 0);
 
     const hasHillsRaceDay = HillsRaceDay !== undefined;
-    const hasLongRunDay = LongRunDay !== undefined;
     
     const messages: ChatCompletionMessageParam[] = [
         {
@@ -31,23 +30,21 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
             content: `Create hard workouts for a week of training using Norwegian threshold training principles. Tailor the training to the runner’s experience and current fitness.
             
             - For threshold workouts, use time-based durations, not distance
-            - Generate exactly ${numLT1Workouts} LT1 workouts and ${numLT2Workouts} LT2 workouts.
-            ${hasHillsRaceDay && `- Generate exactly ${Number(HillsRaceDay)} ${raceSpecific ? `${input.goalRaceDistance} specific`: 'hill @5k effort'} workout.`}
-            ${hasLongRunDay && `- Generate exactly ${LongRunDay ? 1 : 0} long run.
-            ${input.trainingDays.length == 4 ? "- The long run should start easy and progress into LT1." : ""}`}
+            - Generate exactly ${numLT1Workouts} LT1 workouts (80-83% MHR) and ${numLT2Workouts} LT2 (85-88% MHR) workouts.
+            ${hasHillsRaceDay && `- Generate exactly 1 ${raceSpecific ? `${input.goalRaceDistance} specific`: 'hill @5k effort'} workout.`}
             - Each LT1 workout, excluding warmup and cooldown, should total ${thresholds.LT1} minutes, broken into reps of 6 or 9, or 12 min reps
             - Each LT2 workout, excluding warmup and cooldown, should total ${thresholds.LT2} minutes, broken into 3, 6, or 9 min reps.
             - Threshold workout rep to rest time should be 3:1
             - Create race pace workouts that incorporate paces faster and slower than target race pace.
             - Return workouts only — do not assign to specific days
             - Do not include easy runs or off days
-            - Include warmup/cooldown for all threshold workouts
+            - Include warmup/cooldown for all workouts
             - Provide output as an array of workouts with name, tags, and full breakdown of reps/warmups/cooldowns
             - Threshold in warmups should be a maximum of 4 minutes in total, comprising of either 1 or 2 minute reps at either LT1 or LT2 pace, with half the time of rest between reps.
-            - LT2, VO2Max, and Race Specific workouts should include a threshold warmup and cooldown.
+            - Threshold in warmups should be the LAST thing before the workout.
+            - LT2, VO2Max, and Race Specific workouts should include a threshold warmup.
             - The easy portion of warmups and cooldown should both be at least 15 minutes long.
-            - Include a maximum of 1, at most 4, reps of 3 minutes at LT1 pace in the cooldown of Hill workouts.
-            - Include exactly 1 LT1 rep in the cooldown of LT2 workouts.
+            - Include a minimum of 1, at most 4, reps of 3 minutes at LT1 pace after Hill/Race-specific workouts as part of the workout
             `.trim()
         }];
         
@@ -118,7 +115,7 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
                                                         type: {
                                                             type: "string",
                                                             description: "The type of interval or run segment",
-                                                            enum: [, "LT2", "LT1", "Easy",]
+                                                            enum: ["LT2", "LT1", "Easy",]
                                                         },
                                                         reps: {
                                                             type: "number",
@@ -152,7 +149,7 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
                                                         type: {
                                                             type: "string",
                                                             description: "The type of interval or run segment",
-                                                            enum: [, "LT2", "LT1", "Easy",]
+                                                            enum: ["LT2", "LT1", "Easy",]
                                                         },
                                                         reps: {
                                                             type: "number",

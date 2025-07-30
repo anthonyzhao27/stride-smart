@@ -33,7 +33,7 @@ export function WorkoutDetails( { workout }: { workout: WorkoutSegment[] }) {
                 if (isWorkoutSet(item)) {
                     return (
                         <div key={idx} className="text-sm">
-                            {item.reps ? `${item.reps}x` : ""}
+                            {item.reps ? (item.reps !== 1 ? `${item.reps}x` : "") : ""}
                             {item.duration >= 60 ? secToMin(item.duration) : `${item.duration}s`} @ {item.type}
                             {item.rest !== undefined
                                 ? ` w/ ${item.rest >= 60 ? secToMin(item.rest) : `${item.rest}s`} rest`
@@ -117,45 +117,51 @@ export default function TrainingCard({ workout }: { workout: TrainingWorkout }) 
                 </div>
             </div>
 
-            {/* Expandable Section */}
-            {expanded && (
-                <div className="pt-4 space-y-2 text-sm text-gray-700 border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
-                    <div className="flex justify-between">
-                        <span className="font-medium">Warmup:</span>
-                        {workout.warmup && (
-                            <WorkoutDetails workout={workout.warmup} />
-                        )}
-                    </div>
+            {workout.warmup && workout.cooldown &&
+                <>
+                    {/* Expandable Section */}
+                    {expanded && (
+                        <div className="pt-4 space-y-2 text-sm text-gray-700 border-t border-gray-200 dark:text-gray-300 dark:border-gray-700">
+                            <div className="flex justify-between">
+                                <span className="font-medium">Warmup:</span>
+                                {workout.warmup && (
+                                    <WorkoutDetails workout={workout.warmup} />
+                                )}
+                            </div>
 
-                    <div className="flex justify-between">
-                        <span className="font-medium">Cooldown:</span>
-                        {workout.cooldown && (
-                            <WorkoutDetails workout={workout.cooldown} />
-                        )}
-                    </div>
+                            {workout.cooldown &&
+                                <div className="flex justify-between">
+                                    <span className="font-medium">Cooldown:</span>
+                                    <span>
+                                        {workout.cooldown}
+                                    </span>
+                                </div>
+                            }
 
-                    {workout.notes && (
-                        <div>
-                            <span className="block mb-1 font-medium">Notes:</span>
-                            <p>{workout.notes}</p>
+                            {workout.notes && (
+                                <div>
+                                    <span className="block mb-1 font-medium">Notes:</span>
+                                    <p>{workout.notes}</p>
+                                </div>
+                            )}
                         </div>
                     )}
-                </div>
-            )}
 
-            {/* Expand Button */}
-            <div className="pt-2">
-                <button
-                    onClick={() => setExpanded(!expanded)}
-                    className="flex items-center justify-center w-full gap-1 text-sm font-medium text-gray-400 dark:text-blue-400 hover:underline focus:outline-none"
-                >
-                    {expanded ? (
-                        <ChevronUp className="w-4 h-4 text-gray-400" />
-                    ) : (
-                        <ChevronDown className="w-4 h-4 text-gray-400" />
-                    )}
-                </button>
-            </div>
+                    {/* Expand Button */}
+                    <div className="pt-2">
+                        <button
+                            onClick={() => setExpanded(!expanded)}
+                            className="flex items-center justify-center w-full gap-1 text-sm font-medium text-gray-400 dark:text-blue-400 hover:underline focus:outline-none"
+                        >
+                            {expanded ? (
+                                <ChevronUp className="w-4 h-4 text-gray-400" />
+                            ) : (
+                                <ChevronDown className="w-4 h-4 text-gray-400" />
+                            )}
+                        </button>
+                    </div>
+                </>
+            }
         </div>
     );
 }
