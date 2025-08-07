@@ -92,7 +92,7 @@ export type User = {
 export type WorkoutSet = {
     type: "1500" | "Mile" | "3K" | "5K" | "10K" | "Half Marathon" | "Marathon" | "LT2" | "LT1" | "Easy" | "Hills";
     reps?: number;
-    duration: number;
+    length: {amount: number, type: "distance" | "time"};
     rest?: number;
 }
 

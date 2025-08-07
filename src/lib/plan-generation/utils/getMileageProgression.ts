@@ -3,7 +3,7 @@ import { User, RaceDist, Mileage } from '@/lib/types';
 export function getMileageProgression(user: User): Mileage[] {
     const { numWeeks, goalMileage, currentMileage } = user;
 
-    const raceSpecificWeeks = {'1500': 4, 'Mile': 4, '3K': 4, '5K': 6, '10K': 6, 'Half Marathon': 8, 'Marathon': 10};
+    const raceSpecificWeeks = {'1500': 4, 'Mile': 4, '3K': 4, '5K': 4, '10K': 6, 'Half Marathon': 8, 'Marathon': 10};
 
     const taperWeeks: Record<RaceDist, number[]> = {'1500': [0.9, 0.8], 'Mile': [0.9, 0.8], '3K': [0.9, 0.8], '5K': [0.9, 0.8], '10K': [0.9, 0.7], 'Half Marathon': [0.9, 0.8, 0.6], 'Marathon': [0.9, 0.8, 0.6, 0.5]};
     

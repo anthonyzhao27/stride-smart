@@ -1,5 +1,5 @@
 import { User } from "@/lib/types";
-import { getMileageProgression } from "./getMileageProgression";
+import { getMileageProgression } from "@/lib/plan-generation/utils/getMileageProgression";
 
 export function getThresholdTimeTargets(user: User, week: number): { LT1: number, LT2: number } {
     const { experience, numDaysDoubleThreshold } = user;
@@ -11,7 +11,6 @@ export function getThresholdTimeTargets(user: User, week: number): { LT1: number
     const targetMileage = mileageProgression[week - 1];
 
     const thresholds = [
-        { min: 50, LT1: 48, LT2: 42 },
         { min: 40, LT1: 42, LT2: 36 },
         { min: 30, LT1: 36, LT2: 30 }
     ];
@@ -21,5 +20,5 @@ export function getThresholdTimeTargets(user: User, week: number): { LT1: number
             return { LT1: t.LT1, LT2: t.LT2 };
         }
     }
-    return { LT1: 30, LT2: 25 };
+    return { LT1: 30, LT2: 24 };
 }

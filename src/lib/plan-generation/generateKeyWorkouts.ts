@@ -1,8 +1,8 @@
 import { User, TrainingWorkout } from "@/lib/types";
 import { OpenAI } from "openai";
 import { getMileageProgression } from "@/lib/plan-generation/utils/getMileageProgression";
-import { assignWorkoutDays } from "./assignWorkoutDays";
-import { getThresholdTimeTargets } from "./utils/getThresholdTimeTargets";
+import { assignWorkoutDays } from "@/lib/plan-generation/assignWorkoutDays";
+import { getThresholdTimeTargets } from "@/lib/plan-generation/utils/getThresholdTimeTargets";
 import { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 
 export async function generateKeyWorkouts( input: User, week: number): Promise<TrainingWorkout[]> {
@@ -31,12 +31,11 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
             
             - For threshold workouts, use time-based durations, not distance
             - Generate exactly ${numLT1Workouts} LT1 workouts (80-83% MHR) and ${numLT2Workouts} LT2 (85-88% MHR) workouts.
-            ${hasHillsRaceDay && `- Generate exactly 1 ${raceSpecific ? `${input.goalRaceDistance} specific`: 'hill @5k effort'} workout.`}
-            - Each LT1 workout, excluding warmup and cooldown, should total ${thresholds.LT1} minutes, broken into reps of 6 or 9, or 12 min reps
-            - Each LT2 workout, excluding warmup and cooldown, should total ${thresholds.LT2} minutes, broken into 3, 6, or 9 min reps.
+            - Each LT2 workout, excluding warmup and cooldown, should total ${thresholds.LT1 * 60} seconds. All reps within a single LT2 workout must be the same duration. The allowed rep durations are exactly 360, 540, or 720 seconds. Do not mix different durations in the same workout.
+            - Each LT2 workout, excluding warmup and cooldown, should total ${thresholds.LT2 * 60} seconds. All reps within a single LT2 workout must be the same duration. The allowed rep durations are exactly 180, 360, or 540 seconds. Do not mix different durations in the same workout.
             - Threshold workout rep to rest time should be 3:1
-            - Create race pace workouts that incorporate paces faster and slower than target race pace.
-            - Return workouts only — do not assign to specific days
+            ${hasHillsRaceDay && `- Generate exactly 1 ${raceSpecific ? `${input.goalRaceDistance} specific workout. Race-specific workouts should incorporate paces faster and slower than target race pace. Only race-specific workouts should be created with distance, not time.`: 'hill @5k effort workout. Hill workouts should be created with time, not distance.'}`}
+            - Return workouts only — do not assign to specific days.
             - Do not include easy runs or off days
             - Include warmup/cooldown for all workouts
             - Provide output as an array of workouts with name, tags, and full breakdown of reps/warmups/cooldowns
@@ -85,16 +84,29 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
                                                             type: "number",
                                                             description: "The amount of reps at the aforementioned pace"
                                                         },
-                                                        duration: {
-                                                            type: "number",
-                                                            description: "The duration of each rep in seconds"
+                                                        length: {
+                                                            type: "object",
+                                                            description: "The length of a workout rep, either by distance or time",
+                                                            properties: {
+                                                                amount: {
+                                                                    type: "number",
+                                                                    description: "The duration, in seconds, or distance, in meters, of each rep"
+                                                                },
+                                                                type: {
+                                                                    type: "string",
+                                                                    enum: ["distance", "time"],
+                                                                    description: "Whether the amount is in distance (meters) or time (seconds)"
+                                                                }
+                                                            },
+                                                            required: ["amount", "type"],
+                                                            additionalProperties: false
                                                         },
                                                         rest: {
                                                             type: "number",
                                                             description: "The duration of rest betwee each rep in seconds"
                                                         }
                                                     },
-                                                    required: ["duration"]
+                                                    required: ["type", "length"]
                                                 },
                                                 {
                                                     type: "number",
@@ -121,16 +133,29 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
                                                             type: "number",
                                                             description: "The amount of reps at the aforementioned pace"
                                                         },
-                                                        duration: {
-                                                            type: "number",
-                                                            description: "The duration of each rep in seconds"
+                                                        length: {
+                                                            type: "object",
+                                                            description: "The length of a workout rep, either by distance or time",
+                                                            properties: {
+                                                                amount: {
+                                                                    type: "number",
+                                                                    description: "The duration, in seconds, or distance, in meters, of each rep"
+                                                                },
+                                                                type: {
+                                                                    type: "string",
+                                                                    enum: ["distance", "time"],
+                                                                    description: "Whether the amount is in distance (meters) or time (seconds)"
+                                                                }
+                                                            },
+                                                            required: ["amount", "type"],
+                                                            additionalProperties: false
                                                         },
                                                         rest: {
                                                             type: "number",
                                                             description: "The duration of rest betwee each rep in seconds"
                                                         }
                                                     },
-                                                    required: ["duration"]
+                                                    required: ["type", "length"]
                                                 },
                                                 {
                                                     type: "number",
@@ -139,43 +164,9 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
                                             ]
                                         }
                                     },
-                                    cooldown: { type: "array",
-                                        description: "The contents of the cooldown. Don't include threshold in the cooldown for LT1 workouts.",
-                                        items: {
-                                            anyOf: [
-                                                {
-                                                    type: "object",
-                                                    properties: {
-                                                        type: {
-                                                            type: "string",
-                                                            description: "The type of interval or run segment",
-                                                            enum: ["LT2", "LT1", "Easy",]
-                                                        },
-                                                        reps: {
-                                                            type: "number",
-                                                            description: "The amount of reps at the aforementioned pace"
-                                                        },
-                                                        duration: {
-                                                            type: "number",
-                                                            description: "The duration of each rep in seconds"
-                                                        },
-                                                        rest: {
-                                                            type: "number",
-                                                            description: "The duration of rest betwee each rep in seconds"
-                                                        }
-                                                    },
-                                                    required: ["duration"]
-                                                },
-                                                {
-                                                    type: "number",
-                                                    description: "Rest period between segments in seconds"
-                                                }
-                                            ]
-                                        } 
-                                    },
                                     notes: { type: "string" },
                                 },
-                                required: ["name", "dayOfWeek", "tags","targetHeartRate", "targetEffortLevel", "totalDistance", "totalDuration"]
+                                required: ["name", "tags", "targetHeartRate", "targetEffortLevel"]
                             }
                         }
                     },

@@ -1,6 +1,6 @@
 import { TrainingWorkout, WorkoutSet, WorkoutSegment } from '@/lib/types';
 import { useState } from "react";
-import { formatPace } from "@/lib/training/utils/getTrainingPaces";
+import { formatPace } from "@/lib/plan-generation/utils/getTrainingPaces";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { secToMin } from "@/lib/conversion";
 
@@ -19,7 +19,7 @@ const tagColorMap: Record<TrainingWorkout['tags'], string> = {
 };
 
 function isWorkoutSet(item: WorkoutSet | WorkoutSegment | number): item is WorkoutSet {
-    return typeof item === "object" && item !== null && "type" in item && "duration" in item;
+    return typeof item === "object" && item !== null && "type" in item && "length" in item;
 }
 
 function isWorkoutSegment(item: WorkoutSet | WorkoutSegment | number): item is WorkoutSegment {
@@ -34,7 +34,7 @@ export function WorkoutDetails( { workout }: { workout: WorkoutSegment[] }) {
                     return (
                         <div key={idx} className="text-sm">
                             {item.reps ? (item.reps !== 1 ? `${item.reps}x` : "") : ""}
-                            {item.duration >= 60 ? secToMin(item.duration) : `${item.duration}s`} @ {item.type}
+                            {item.length.type == "time" ? item.length.amount >= 60 ? secToMin(item.length.amount) : `${item.length.amount}s` : item.length.amount >= 2000 ? `${item.length.amount / 1000}k` : `${item.length.amount}m`} @ {item.type}
                             {item.rest !== undefined
                                 ? ` w/ ${item.rest >= 60 ? secToMin(item.rest) : `${item.rest}s`} rest`
                                 : ""}
