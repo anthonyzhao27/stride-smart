@@ -1,10 +1,10 @@
 import { User, TrainingWeek } from "@/lib/types";
-import { generateKeyWorkouts } from "./generateKeyWorkouts";
+import { generateKeyWorkouts } from "@/lib/plan-generation/generateKeyWorkouts";
 // import { assignWorkoutDays } from "./assignWorkoutDays";
-import { fillEasyRuns } from "./fillEasyRuns";
+import { fillEasyRuns } from "@/lib/plan-generation/fillEasyRuns";
 // import { getMileageProgression } from "./utils/getMileageProgression";
-import { sanitizeKeyWorkouts } from "./sanitizeKeyWorkouts";
-import { postProcessWeek } from "./postProcessWeek";
+import { sanitizeKeyWorkouts } from "@/lib/plan-generation/sanitizeKeyWorkouts";
+import { postProcessWeek } from "@/lib/plan-generation/postProcessWeek";
 
 export async function generateCompleteWeek(user: User, week: number): Promise<TrainingWeek> {
     const keyWorkouts = await generateKeyWorkouts(user, week);
@@ -13,9 +13,8 @@ export async function generateCompleteWeek(user: User, week: number): Promise<Tr
 
     const sanitizedKeyWorkouts = sanitizeKeyWorkouts(user, keyWorkouts, week);
 
-    // console.log("Sanitized Key Workouts");
-
-    // console.log(JSON.stringify(sanitizedKeyWorkouts, null, 2));
+    console.log("Sanitized Key Workouts");
+    console.log(JSON.stringify(sanitizedKeyWorkouts, null, 2));
 
     const fullWeek = fillEasyRuns(user, sanitizedKeyWorkouts, week);
 

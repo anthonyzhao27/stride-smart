@@ -1,4 +1,4 @@
-import { User, TrainingWeek } from "../types";
+import { User, TrainingWeek } from "@/lib/types";
 
 export function postProcessWeek(user: User, trainingWeek: TrainingWeek): TrainingWeek {
     const { trainingDays } = user;

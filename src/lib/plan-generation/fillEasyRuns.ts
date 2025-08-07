@@ -1,8 +1,8 @@
-import { getMileageProgression } from "./utils/getMileageProgression";
+import { getMileageProgression } from "@/lib/plan-generation/utils/getMileageProgression";
 import { User, TrainingWeek, PaceEntry } from "@/lib/types";
-import { assignWorkoutDays } from "./assignWorkoutDays";
-import { getTrainingPaces } from "./utils/getTrainingPaces";
-import { getDayToDate } from "./utils/getWeekStartDate";
+import { assignWorkoutDays } from "@/lib/plan-generation/assignWorkoutDays";
+import { getTrainingPaces } from "@/lib/plan-generation/utils/getTrainingPaces";
+import { getDayToDate } from "@/lib/plan-generation/utils/getWeekStartDate";
 
 export function fillEasyRuns(input: User, trainingWeek: TrainingWeek, week: number) {
     const { trainingDays, currentRaceDistance, currentRaceTime, goalRaceDistance, goalRaceTime, numWeeks } = input;
@@ -21,6 +21,7 @@ export function fillEasyRuns(input: User, trainingWeek: TrainingWeek, week: numb
     const { mileage: goalMileage, raceSpecific } = mileageProgression[week - 1]
 
     let { totalMileage: currentMileage } = trainingWeek;
+    console.log(currentMileage);
 
     const { doubleThresholdDays, LT1Day, LT2Day, HillsRaceDay, LongRunDay } = assignWorkoutDays(input, raceSpecific);
 
@@ -28,7 +29,7 @@ export function fillEasyRuns(input: User, trainingWeek: TrainingWeek, week: numb
 
     // First add in the long run manually
 
-    const longRunDist = Math.floor(0.2 * goalMileage) + 1;
+    const longRunDist = Math.min(18, Math.floor(0.2 * goalMileage) + 1);
 
     trainingWeek.workouts.push({
         name: "Long Run",
@@ -36,12 +37,13 @@ export function fillEasyRuns(input: User, trainingWeek: TrainingWeek, week: numb
         dayOfWeek: LongRunDay ?? "",
         tags: "LongRun",
         distance: longRunDist,
-        duration: longRunDist * trainingPaces['Easy'][0],
+        duration: Math.ceil(longRunDist * trainingPaces['Easy'][0] / 300) * 300,
         targetHeartRate: "<70% MHR",
         targetPace: [{ type: "Easy", pace: trainingPaces['Easy'] } as PaceEntry],
         ...(input.trainingDays.length === 4 && { notes: "Progress into LT1"})
     })
     currentMileage += longRunDist;
+    trainingWeek.totalDuration += Math.ceil(longRunDist * trainingPaces['Easy'][0] / 300) * 300;
 
     const numWorkoutDays = (doubleThresholdDays ? doubleThresholdDays.length : 0) + (LT1Day ? 1 : 0) + (LT2Day ? 1 : 0) + (HillsRaceDay ? 1 : 0) + (LongRunDay ? 1 : 0);
 
@@ -80,7 +82,7 @@ export function fillEasyRuns(input: User, trainingWeek: TrainingWeek, week: numb
                     dayOfWeek: nonWorkoutDays[idx],
                     tags: 'Easy',
                     distance: run,
-                    duration: run * trainingPaces['Easy'][0],
+                    duration: Math.ceil(run * trainingPaces['Easy'][0] / 300) * 300,
                     targetHeartRate: "<70% MHR",
                     targetPace: [{ type: "Easy", pace: trainingPaces['Easy'] } as PaceEntry]
                 });
@@ -93,7 +95,7 @@ export function fillEasyRuns(input: User, trainingWeek: TrainingWeek, week: numb
                 dayOfWeek: nonWorkoutDays[idx],
                 tags: 'Easy',
                 distance: miles,
-                duration: miles * trainingPaces['Easy'][0],
+                duration: Math.ceil(miles * trainingPaces['Easy'][0] / 300) * 300,
                 targetHeartRate: "<70% MHR",
                 targetPace: [{ type: "Easy", pace: trainingPaces['Easy'] } as PaceEntry]
             });

@@ -1,4 +1,4 @@
-import { assignWorkoutDays } from "@/lib/training/assignWorkoutDays";
+import { assignWorkoutDays } from "@/lib/plan-generation/assignWorkoutDays";
 import { User } from "@/lib/types";
 
 

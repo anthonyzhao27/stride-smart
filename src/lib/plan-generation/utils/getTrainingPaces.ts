@@ -1,4 +1,4 @@
-import vdot from "../vdot.json";
+import vdot from "@/lib/plan-generation/vdot.json";
 import { RaceDist, TrainingPaces } from "@/lib/types"
 
 type RacePaces = {

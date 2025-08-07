@@ -1,4 +1,4 @@
-import { WorkoutSegment, TrainingPaces, WorkoutSet, TrainingDist } from "../../types";
+import { WorkoutSegment, TrainingPaces, WorkoutSet, TrainingDist } from "@/lib/types";
 
 export function calculateDistanceAndDurationFromWorkoutSegments(workoutSegments: WorkoutSegment[] | undefined, trainingPaces: TrainingPaces): { distance: number, duration: number } {
     if (!workoutSegments || workoutSegments.length === 0) {
@@ -18,10 +18,10 @@ export function calculateDistanceAndDurationFromWorkoutSegments(workoutSegments:
         const pace = trainingPaces[set.type as TrainingDist];
         const paceValue = Array.isArray(pace) ? pace[0] : pace;
 
-        distance += 1 / paceValue * set.duration * (set.reps || 1);
+        distance += (set.length.type == "time" ? 1 / paceValue * set.length.amount : Math.round(set.length.amount / 1609 * 100) / 100) * (set.reps || 1);
         
-        duration += (set.duration + (set.rest || 0)) * (set.reps || 1);
+        duration += ((set.length.type == "time" ? set.length.amount : Math.round(set.length.amount / 1609 * paceValue)) + (set.rest || 0)) * (set.reps || 1);
     });
 
-    return { distance: Math.round(distance / 0.5) * 0.5, duration: Math.round(duration / 0.5) * 0.5 };
+    return { distance: Math.round(distance / 0.5) * 0.5, duration: Math.ceil(duration / 300) * 300 };
 }

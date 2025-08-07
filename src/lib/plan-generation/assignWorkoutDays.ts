@@ -1,84 +1,84 @@
 import { WorkoutDays, User } from "@/lib/types";
 
+const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
 export function assignWorkoutDays(user: User, raceSpecific: boolean): WorkoutDays {
-    /*
-        If the user can only train 4 days a week, structure as follows:
-        Maximum workouts:
-        - One day VO2 only when peaking
-        - One day LT2
-        - One day Long progression into LT1
-        - One day easy
-
-        If the user can only train 5 days a week, structure as follows:
-        Maximum workouts:
-        - One day VO2
-        - One day LT2
-        - One day easy long run
-        - One easy
-        - One day LT1
-
-        If the user can train at least 6 days a week, structure as follows:
-        Maximum workouts:
-        - One day VO2
-        - One day LT2
-        - One day easy long run
-        - One day LT1
-        - Rest easy
-
-        RULES:
-        - VO2 and LT2 and LT1 must have at least one recovery day in between
-        - Long run can be on any day that isn't a workout day
-    */
-
     const { trainingDays, numDaysDoubleThreshold } = user;
 
-    const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    // Helper: return the missing days from a full week
+    const getMissingDays = () => WEEKDAYS.filter(day => !trainingDays.includes(day));
 
-    if (trainingDays.length == 4) {
-        return raceSpecific ? {LT2Day: trainingDays[1], HillsRaceDay: trainingDays[3]} : { LongRunDay: trainingDays[1], LT2Day: trainingDays[3]};
-    } else if (trainingDays.length === 5) {
-        const missingDays = weekdays.filter(day => !trainingDays.includes(day));
+    // Helper: reorder days starting after a given day
+    const reorderAfter = (day: string) => {
+        const idx = WEEKDAYS.indexOf(day);
+        return [...WEEKDAYS.slice(idx + 1), ...WEEKDAYS.slice(0, idx)];
+    };
 
-        const reorderedTrainingDays = [weekdays.slice(weekdays.indexOf(missingDays[0]) + 1, weekdays.indexOf(missingDays[1])), [weekdays.slice(weekdays.indexOf(missingDays[1]) + 1), weekdays.slice(0, weekdays.indexOf(missingDays[0]))].flat()];
-        
-        reorderedTrainingDays.sort((a, b) => b.length - a.length);
+    // 4 training days
+    if (trainingDays.length === 4) {
+        return raceSpecific
+            ? { LT2Day: trainingDays[1], HillsRaceDay: trainingDays[3] }
+            : { LongRunDay: trainingDays[1], LT2Day: trainingDays[3] };
+    }
 
-        switch (reorderedTrainingDays[0].length) {
-            case 5:
-                return {
-                    LT1Day: reorderedTrainingDays[0][0],
-                    LT2Day: reorderedTrainingDays[0][2],
-                    HillsRaceDay: reorderedTrainingDays[0][4],
-                    LongRunDay: reorderedTrainingDays[0][1]
-                } as WorkoutDays;
-            case 4:
-                return {
-                    LT1Day: reorderedTrainingDays[0][1],
-                    LT2Day: reorderedTrainingDays[0][3],
-                    HillsRaceDay: reorderedTrainingDays[1][0],
-                    LongRunDay: reorderedTrainingDays[0][0]
-                } as WorkoutDays;
-            case 3:
-                return {
-                    LT1Day: reorderedTrainingDays[0][0],
-                    LT2Day: reorderedTrainingDays[0][2],
-                    HillsRaceDay: reorderedTrainingDays[1][1],
-                    LongRunDay: reorderedTrainingDays[0][1]
-                } as WorkoutDays;
+    // 5 training days
+    if (trainingDays.length === 5) {
+        const missing = getMissingDays();
+        const blocks = [
+            WEEKDAYS.slice(WEEKDAYS.indexOf(missing[0]) + 1, WEEKDAYS.indexOf(missing[1])),
+            [
+                ...WEEKDAYS.slice(WEEKDAYS.indexOf(missing[1]) + 1),
+                ...WEEKDAYS.slice(0, WEEKDAYS.indexOf(missing[0]))
+            ]
+        ];
+        blocks.sort((a, b) => b.length - a.length);
+
+        const main = blocks[0], side = blocks[1];
+
+        if (main.length === 5) {
+            return { LT1Day: main[0], LT2Day: main[2], HillsRaceDay: main[4], LongRunDay: main[1] };
         }
-    } else if (trainingDays.length === 6) {
-        let reorderedTrainingDays = [...trainingDays];
-        const missingDay = weekdays.find(day => !trainingDays.includes(day));
-        if (missingDay) {
-            reorderedTrainingDays = [weekdays.slice(weekdays.indexOf(missingDay) + 1), weekdays.slice(0, weekdays.indexOf(missingDay))].flat();
+        if (main.length === 4) {
+            return { LT1Day: main[1], LT2Day: main[3], HillsRaceDay: side[0], LongRunDay: main[0] };
         }
-        return {
-            LT1Day: reorderedTrainingDays[1],
-            LT2Day: reorderedTrainingDays[3],
-            HillsRaceDay: reorderedTrainingDays[5],
-            LongRunDay: reorderedTrainingDays[0]
-        } as WorkoutDays;
-    } else {
+        if (main.length === 3) {
+            return { LT1Day: main[0], LT2Day: main[2], HillsRaceDay: side[1], LongRunDay: main[1] };
+        }
+    }
+
+    // 6 training days
+    if (trainingDays.length === 6) {
+        const missing = WEEKDAYS.find(day => !trainingDays.includes(day));
+        const reordered = missing ? reorderAfter(missing) : [...trainingDays];
+        if (numDaysDoubleThreshold) {
+            switch (numDaysDoubleThreshold) {
+                case 0:
+                    return {
+                        LT1Day: trainingDays[1],
+                        LT2Day: trainingDays[3],
+                        HillsRaceDay: trainingDays[5],
+                        LongRunDay: trainingDays[0]
+                    };
+                case 1:
+                    return {
+                        doubleThresholdDays: [trainingDays[1]],
+                        LT2Day: trainingDays[3],
+                        HillsRaceDay: trainingDays[5],
+                        LongRunDay: trainingDays[0]
+                    };
+                case 2:
+                    return {
+                        doubleThresholdDays: [trainingDays[1], trainingDays[3]],
+                        HillsRaceDay: trainingDays[5],
+                        LongRunDay: trainingDays[0]
+                    };
+            }
+        }
+        return { LT1Day: reordered[1], LT2Day: reordered[3], HillsRaceDay: reordered[5], LongRunDay: reordered[0] };
+    }
+
+    // 7 training days
+    if (numDaysDoubleThreshold) {
         switch (numDaysDoubleThreshold) {
             case 0:
                 return {
@@ -86,21 +86,23 @@ export function assignWorkoutDays(user: User, raceSpecific: boolean): WorkoutDay
                     LT2Day: trainingDays[3],
                     HillsRaceDay: trainingDays[5],
                     LongRunDay: trainingDays[6]
-                } as WorkoutDays;
+                };
             case 1:
                 return {
                     doubleThresholdDays: [trainingDays[1]],
                     LT2Day: trainingDays[3],
                     HillsRaceDay: trainingDays[5],
                     LongRunDay: trainingDays[6]
-                } as WorkoutDays;
+                };
             case 2:
                 return {
                     doubleThresholdDays: [trainingDays[1], trainingDays[3]],
                     HillsRaceDay: trainingDays[5],
                     LongRunDay: trainingDays[6]
-                } as WorkoutDays;
+                };
         }
     }
+    return { LT1Day: trainingDays[1], LT2Day: trainingDays[3], HillsRaceDay: trainingDays[5], LongRunDay: trainingDays[6] };
+
     throw new Error("Unable to assign workout days: invalid input or unsupported configuration.");
 }

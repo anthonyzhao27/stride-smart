@@ -1,11 +1,11 @@
 import { TrainingWorkout, TrainingWeek } from "@/lib/types";
-import { assignWorkoutDays } from "./assignWorkoutDays";
-import { getMileageProgression } from "./utils/getMileageProgression";
+import { assignWorkoutDays } from "@/lib/plan-generation/assignWorkoutDays";
+import { getMileageProgression } from "@/lib/plan-generation/utils/getMileageProgression";
 import { User } from "@/lib/types";
-import { getDayToDate, getWeekStartDate } from "./utils/getWeekStartDate";
-import { getTrainingPacesFromWorkoutSegments } from "./utils/getTrainingPacesFromWorkoutSegments";
-import { calculateDistanceAndDurationFromWorkoutSegments } from "./utils/calculateDistanceAndDurationFromWorkoutSegments";
-import { getTrainingPaces } from "./utils/getTrainingPaces";
+import { getDayToDate, getWeekStartDate } from "@/lib/plan-generation/utils/getWeekStartDate";
+import { getTrainingPacesFromWorkoutSegments } from "@/lib/plan-generation/utils/getTrainingPacesFromWorkoutSegments";
+import { calculateDistanceAndDurationFromWorkoutSegments } from "@/lib/plan-generation/utils/calculateDistanceAndDurationFromWorkoutSegments";
+import { getTrainingPaces } from "@/lib/plan-generation/utils/getTrainingPaces";
 
 export function sanitizeKeyWorkouts(input: User, workouts: TrainingWorkout[], week: number): TrainingWeek {
     const mileageProgression = getMileageProgression(input);

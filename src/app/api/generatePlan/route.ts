@@ -3,7 +3,7 @@ import { doc, setDoc } from "firebase/firestore";
 
 import { NextResponse } from "next/server";
 
-import { generateCompleteWeek } from "@/lib/training/generateCompleteWeek";
+import { generateCompleteWeek } from "@/lib/plan-generation/generateCompleteWeek";
 
 // import { postprocessPlan } from "@/lib/ai/postprocessPlan";
 
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
     const allPlans = [];
 
-    for (let week = 1; week <= 4; week++) {
+    for (let week = 1; week <= user.numWeeks; week++) {
         const plan = await generateCompleteWeek(user, week);
     
         try {
