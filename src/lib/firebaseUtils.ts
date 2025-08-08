@@ -47,7 +47,3 @@ export async function fetchWorkoutsForMonth(start: Date, uid: string): Promise<R
 
     return result;
 }
-
-export async function fetchNextTrainingWorkout(uid: string) {
-
-}
