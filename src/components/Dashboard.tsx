@@ -103,10 +103,8 @@ export default function Dashboard() {
                         type: data.type,
                         effortLevel: data.effortLevel,
                         notes: data.notes,
-                    };
+                    } as LoggedWorkout;
                 });
-                
-                console.log(workoutsData);
                 setWorkouts(workoutsData);
             },
             (error) => {
@@ -114,29 +112,18 @@ export default function Dashboard() {
             }
         );
 
-        
         return () => unsubscribe();
     }, [uid]);
 
-    useEffect(() => {
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.key === "Escape" && showForm) {
-                setShowForm(false);
-                setSelectedWorkout(null);
-            }
-        };
-
-        if (showForm) {
-            window.addEventListener("keydown", handleKeyDown);
+    const handleDelete = async (id: string) => {
+        if (!uid) return;
+        
+        try {
+            await deleteDoc(doc(db, "users", uid, "workouts", id));
+        } catch (error) {
+            console.error("Error deleting workout:", error);
         }
-
-        return () => {
-            window.removeEventListener("keydown", handleKeyDown);
-        }
-    }, [showForm]);
-
-    useEffect(() => { //fetches latest training workout
-    })
+    };
 
     const WorkoutButton = () => {
         return (
@@ -172,31 +159,16 @@ export default function Dashboard() {
         return (
             <>
                 {showOnboarding && (
-                    <OnboardingModal
-                        onClose={() => setShowOnboarding(false)} // optional skip
-                        onSubmit={() => setShowOnboarding(false)} // hides modal after save
-                    />
+                    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+                        <OnboardingModal
+                            onClose={() => setShowOnboarding(false)}
+                            onSubmit={() => setShowOnboarding(false)}
+                        />
+                    </div>
                 )}
             </>
         );
-    }
-
-    const handleDelete = async (id: string) => {
-        try {
-            if (!id || !uid) {
-                console.error("Missing uid or workout id.");
-                return;
-            }
-            
-            await deleteDoc(doc(db, 'users', uid, 'workouts', id));
-            console.log(`Deleted workout with id ${id}`);
-        } catch (error) {
-            console.error('Error deleting document:', error)
-        }
-    }
-
-    if (user === undefined) return null;
-    if (user === null) return null;
+    };
 
     return (
         <>
@@ -243,8 +215,6 @@ export default function Dashboard() {
                     </div>
                 </div>
                 </div>
-
-
 
                 <div className="p-6 mx-auto max-w-screen-2xl">
                     {/* Heading */}
