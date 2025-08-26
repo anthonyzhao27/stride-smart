@@ -14,7 +14,7 @@ export async function POST(req: Request) {
 
     const allPlans = [];
 
-    for (let week = 1; week <= user.numWeeks; week++) {
+    for (let week = 1; week <= 1; week++) {
         const plan = await generateCompleteWeek(user, week);
     
         try {
@@ -22,11 +22,11 @@ export async function POST(req: Request) {
             const planRef = doc(db, "users", uid, "plans", `week_${week}`);
             await setDoc(planRef, plan);
 
-            allPlans.push({ week, plan})
+            allPlans.push({ week, plan});
     
         } catch (error) {
             console.error("Failed to save plan:", error);
-            return NextResponse.json({ success: false, error: "Invalid plan format" }, { status: 500 })
+            return NextResponse.json({ success: false, error: "Invalid plan format" }, { status: 500 });
         }
     }
     return NextResponse.json({ success: true, allPlans});

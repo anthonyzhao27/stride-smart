@@ -37,11 +37,7 @@ export type PaceEntry = {
     pace: Pace;
 };
 
-export type TrainingWorkout = {
-  name: string;
-  date: Date;
-  dayOfWeek: string;
-  tags:
+export type Tags =
     | 'LT1'
     | 'LT2'
     | 'Hills'
@@ -51,8 +47,13 @@ export type TrainingWorkout = {
     | 'VO2Max'
     | 'RaceSpecific'
     | 'Speed'
-    | 'Crosstrain'
-    | 'Off';
+    | 'Crosstrain';
+
+export type TrainingWorkout = {
+  name: string;
+  date: Date;
+  dayOfWeek: string;
+  tags: Tags;
   workout?: WorkoutSegment[];
   distance: number;
   duration: number;

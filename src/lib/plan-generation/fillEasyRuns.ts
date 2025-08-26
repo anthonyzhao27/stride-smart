@@ -23,16 +23,18 @@ export function fillEasyRuns(input: User, trainingWeek: TrainingWeek, week: numb
     let { totalMileage: currentMileage } = trainingWeek;
     console.log(currentMileage);
 
-    const { doubleThresholdDays, LT1Day, LT2Day, HillsRaceDay, LongRunDay } = assignWorkoutDays(input, raceSpecific);
+    const { doubleThresholdDays, LT1Day, LT2Day, LongRunDay } = assignWorkoutDays(input, raceSpecific);
 
     const daysToDates = getDayToDate(new Date(input.planStartDate), week);
 
     // First add in the long run manually
-
-    const longRunDist = Math.min(18, Math.floor(0.2 * goalMileage) + 1);
+    // Calculate long run distance as 15% of goal mileage, capped at 16 miles for most runners
+    // For marathon training, allow up to 20 miles
+    const maxLongRun = input.goalRaceDistance === "Marathon" ? 20 : 16;
+    const longRunDist = Math.min(maxLongRun, Math.floor(0.2 * goalMileage) + 1);
 
     trainingWeek.workouts.push({
-        name: "Long Run",
+        name: "Long Run + Hill Strides",
         date: daysToDates.get(LongRunDay ?? "") ?? new Date(),
         dayOfWeek: LongRunDay ?? "",
         tags: "LongRun",
@@ -40,12 +42,13 @@ export function fillEasyRuns(input: User, trainingWeek: TrainingWeek, week: numb
         duration: Math.ceil(longRunDist * trainingPaces['Easy'][0] / 300) * 300,
         targetHeartRate: "<70% MHR",
         targetPace: [{ type: "Easy", pace: trainingPaces['Easy'] } as PaceEntry],
+        notes: "Hill strides @5k effort after",
         ...(input.trainingDays.length === 4 && { notes: "Progress into LT1"})
     })
     currentMileage += longRunDist;
     trainingWeek.totalDuration += Math.ceil(longRunDist * trainingPaces['Easy'][0] / 300) * 300;
 
-    const numWorkoutDays = (doubleThresholdDays ? doubleThresholdDays.length : 0) + (LT1Day ? 1 : 0) + (LT2Day ? 1 : 0) + (HillsRaceDay ? 1 : 0) + (LongRunDay ? 1 : 0);
+    const numWorkoutDays = (doubleThresholdDays ? doubleThresholdDays.length : 0) + (LT1Day ? 1 : 0) + (LT2Day ? 1 : 0) + (LongRunDay ? 1 : 0);
 
     const numEasyDays = trainingDays.length - numWorkoutDays;
 
@@ -70,7 +73,7 @@ export function fillEasyRuns(input: User, trainingWeek: TrainingWeek, week: numb
         currentMileage += miles;
     }) // Splits longer easy runs into doubles
 
-    const nonWorkoutDays = trainingDays.filter(day => ![doubleThresholdDays, LT1Day, LT2Day, HillsRaceDay, LongRunDay].flat().includes(day));
+    const nonWorkoutDays = trainingDays.filter(day => ![doubleThresholdDays, LT1Day, LT2Day, LongRunDay].flat().includes(day));
 
     modifiedEasyMiles.forEach((miles, idx) => {
         if (Array.isArray(miles) && miles.length === 2) {

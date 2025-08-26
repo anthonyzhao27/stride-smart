@@ -14,12 +14,13 @@ export function sanitizeKeyWorkouts(input: User, workouts: TrainingWorkout[], we
 
     const LT1s = workouts.filter(w => w.tags === "LT1");
     const LT2s = workouts.filter(w => w.tags === "LT2");
-    const Hills = workouts.find(w => w.tags === "Hills");
-    const LongRun = workouts.find(w => w.tags === "LongRun");
+    // Remove Hills handling since 
+    //  workouts are removed from the plan
+    // const Hills = workouts.find(w => w.tags === "Hills");
 
     const assigned: TrainingWorkout[] = [];
 
-    const { doubleThresholdDays, LT1Day, LT2Day, HillsRaceDay, LongRunDay } = assignWorkoutDays(input, raceSpecific);
+    const { doubleThresholdDays, LT1Day, LT2Day } = assignWorkoutDays(input, raceSpecific);
 
     const daysToDates = getDayToDate(new Date(input.planStartDate), week);
 
@@ -64,25 +65,15 @@ export function sanitizeKeyWorkouts(input: User, workouts: TrainingWorkout[], we
         } as TrainingWorkout);
     }
 
-    if (Hills && HillsRaceDay) {
-        const hills = Hills;
-
-        assigned.push({
-            ...hills,
-            dayOfWeek: HillsRaceDay,
-            date: daysToDates.get(HillsRaceDay)
-        } as TrainingWorkout);
-    }
-
-    if (LongRun && LongRunDay) {
-        const longRun = LongRun;
-
-        assigned.push({
-            ...longRun,
-            dayOfWeek: LongRunDay,
-            date: daysToDates.get(LongRunDay)
-        } as TrainingWorkout);
-    }
+    // Remove Hills handling since hill workouts are removed from the plan
+    // if (Hills && HillsRaceDay) {
+    //     const hills = Hills;
+    //     assigned.push({
+    //         ...hills,
+    //         dayOfWeek: HillsRaceDay,
+    //         date: daysToDates.get(HillsRaceDay)
+    //     } as TrainingWorkout);
+    // }
 
     let totalMileage = 0;
     let totalDuration = 0;
