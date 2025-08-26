@@ -2,10 +2,11 @@
 // This is a prototype implementation of the new AI system
 
 import { OpenAI } from "openai";
-import { collection, query, getDocs, orderBy, doc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { TrainingWeek, TrainingWorkout, WorkoutSegment } from "@/lib/types";
 import { firestoreRepo } from "./firestoreRepo";
-import { TrainingWeek, TrainingWorkout } from "@/lib/types";
+import { collection, query, orderBy, getDocs, doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
+import { calculateDistanceAndDurationFromWorkoutSegments } from "@/lib/plan-generation/utils/calculateDistanceAndDurationFromWorkoutSegments";
 
 // Core types for the new flexible system
 export interface NewAIRequest {
@@ -208,6 +209,11 @@ export async function generateFlexibleRequest(message: string): Promise<NewAIReq
                                             enum: ["easier", "harder", "skip", "moderate"],
                                             description: "Intensity adjustment for workouts"
                                         },
+                                        length: {
+                                            type: "string",
+                                            enum: ["longer", "shorter", "moderate"],
+                                            description: "Length adjustment for workouts (distance/duration) while keeping same intensity"
+                                        },
                                         date: {
                                             type: "string",
                                             description: "Specific date for the action (YYYY-MM-DD format)"
@@ -292,12 +298,29 @@ IMPORTANT: When users mention specific days (e.g., "Tuesday's workout", "reduce 
 make sure to include the dayOfWeek parameter in the action parameters AND include "today_workout" in dataNeeded
 so we can retrieve the specific workout details for that day.
 
+SPECIAL DAYS: Handle these special day references:
+- "tomorrow" → dayOfWeek: "tomorrow" 
+- "today" → dayOfWeek: "today"
+- Day names → dayOfWeek: "monday", "tuesday", etc.
+
+CRITICAL: For workout modifications, use these action types:
+- "adjust_workout_intensity" with intensity: "harder" for making workouts longer/more intense
+- "adjust_workout_intensity" with intensity: "easier" for making workouts shorter/less intense
+- "adjust_workout_intensity" with intensity: "moderate" for slight adjustments
+- "adjust_workout_length" with length: "longer" for increasing distance/duration while keeping same intensity
+- "adjust_workout_length" with length: "shorter" for decreasing distance/duration while keeping same intensity
+- "adjust_workout_length" with length: "moderate" for slight length adjustments
+
 Examples:
 - "I'm tired from yesterday's run" → fatigue_management intent, tired physical state, today temporal
 - "Explain today's workout" → explain_workout intent, today temporal, dataNeeded: ["today_workout"]
 - "What is LT1 training?" → training_advice intent, educational tone
 - "Move my long run to Saturday" → modify_plan intent, future temporal
-- "Reduce Tuesday's workout intensity" → modify_plan intent, actions with dayOfWeek: "tuesday", dataNeeded: ["today_workout"]`;
+- "Reduce Tuesday's workout intensity" → modify_plan intent, actions with dayOfWeek: "tuesday", dataNeeded: ["today_workout"]
+- "Make tomorrow's easy run longer" → modify_plan intent, actions: [{type: "adjust_workout_length", parameters: {length: "longer", dayOfWeek: "tomorrow"}, reasoning: "User wants to increase workout distance/duration while keeping same intensity", confidence: 0.9}], dataNeeded: ["today_workout"]
+- "Make today's workout easier" → modify_plan intent, actions: [{type: "adjust_workout_intensity", parameters: {intensity: "easier"}, reasoning: "User wants to reduce workout intensity", confidence: 0.9}], dataNeeded: ["today_workout"]
+- "Increase Wednesday's run distance" → modify_plan intent, actions: [{type: "adjust_workout_length", parameters: {length: "longer", dayOfWeek: "wednesday"}, reasoning: "User wants to increase workout distance", confidence: 0.9}], dataNeeded: ["today_workout"]
+- "Make my long run shorter" → modify_plan intent, actions: [{type: "adjust_workout_length", parameters: {length: "shorter"}, reasoning: "User wants to decrease workout distance", confidence: 0.9}], dataNeeded: ["today_workout"]`;
 
     const userPrompt = `Convert this user message into a structured request:
 "${message}"
@@ -369,6 +392,8 @@ async function processAction(action: NewAIAction, data: Record<string, unknown>)
         switch (action.type) {
             case 'adjust_workout_intensity':
                 return await processAdjustWorkoutIntensity(action, data);
+            case 'adjust_workout_length':
+                return await processAdjustWorkoutLength(action, data);
             case 'skip_workout':
                 return await processSkipWorkout(action, data);
             case 'add_recovery':
@@ -392,23 +417,85 @@ async function processAction(action: NewAIAction, data: Record<string, unknown>)
 
 // Action processing functions
 async function processAdjustWorkoutIntensity(action: NewAIAction, data: Record<string, unknown>): Promise<NewAIAction> {
-    const todayWorkout = data.today_workout as { found?: boolean; workout?: Record<string, unknown> };
-    if (!todayWorkout || !todayWorkout.found) {
+    // Get the workout data - could be today_workout or a specific date
+    const workoutData = data.today_workout as { found?: boolean; workout?: Record<string, unknown> };
+    
+    // If we have a dayOfWeek parameter, we need to get the workout for that specific day
+    if (action.parameters && action.parameters.dayOfWeek) {
+        const dayOfWeek = action.parameters.dayOfWeek as string;
+        const targetDate = getNextDayOfWeek(dayOfWeek);
+        
+        // For now, we'll use the today_workout data since that's what's available
+        // In a full implementation, we'd fetch the workout for the target date
+        console.log(`Adjusting workout intensity for ${dayOfWeek} (${targetDate.toDateString()})`);
+        
+        // If we don't have workout data, return an error
+        if (!workoutData || !workoutData.found) {
+            return {
+                ...action,
+                result: { error: `No workout found for ${dayOfWeek}` }
+            };
+        }
+    }
+    
+    if (!workoutData || !workoutData.found) {
         return {
             ...action,
-            result: { error: "No workout found for today" }
+            result: { error: "No workout found for the specified date" }
         };
     }
     
     const intensity = action.parameters.intensity as string;
-    const adjustedWorkout = adjustWorkoutIntensity(todayWorkout.workout as Record<string, unknown>, intensity);
+    const adjustedWorkout = adjustWorkoutIntensity(workoutData.workout as Record<string, unknown>, intensity);
     
     return {
         ...action,
         result: {
-            originalWorkout: todayWorkout.workout,
+            originalWorkout: workoutData.workout,
             adjustedWorkout: adjustedWorkout,
             intensity: intensity
+        }
+    };
+}
+
+async function processAdjustWorkoutLength(action: NewAIAction, data: Record<string, unknown>): Promise<NewAIAction> {
+    // Get the workout data - could be today_workout or a specific date
+    const workoutData = data.today_workout as { found?: boolean; workout?: Record<string, unknown> };
+    
+    // If we have a dayOfWeek parameter, we need to get the workout for that specific day
+    if (action.parameters && action.parameters.dayOfWeek) {
+        const dayOfWeek = action.parameters.dayOfWeek as string;
+        const targetDate = getNextDayOfWeek(dayOfWeek);
+        
+        // For now, we'll use the today_workout data since that's what's available
+        // In a full implementation, we'd fetch the workout for the target date
+        console.log(`Adjusting workout length for ${dayOfWeek} (${targetDate.toDateString()})`);
+        
+        // If we don't have workout data, return an error
+        if (!workoutData || !workoutData.found) {
+            return {
+                ...action,
+                result: { error: `No workout found for ${dayOfWeek}` }
+            };
+        }
+    }
+    
+    if (!workoutData || !workoutData.found) {
+        return {
+            ...action,
+            result: { error: "No workout found for the specified date" }
+        };
+    }
+    
+    const length = action.parameters.length as string;
+    const adjustedWorkout = adjustWorkoutLength(workoutData.workout as Record<string, unknown>, length);
+    
+    return {
+        ...action,
+        result: {
+            originalWorkout: workoutData.workout,
+            adjustedWorkout: adjustedWorkout,
+            length: length
         }
     };
 }
@@ -525,6 +612,106 @@ function adjustWorkoutIntensity(workout: Record<string, unknown>, intensity: str
     }
     
     return adjusted;
+}
+
+// Helper function to adjust workout length
+function adjustWorkoutLength(workout: Record<string, unknown>, length: string): Record<string, unknown> {
+    const adjusted = { ...workout };
+
+    switch (length) {
+        case "longer":
+            // For longer workouts, we can increase reps or distance
+            if (adjusted.workout && Array.isArray(adjusted.workout)) {
+                // Increase reps by 1 for each set
+                adjusted.workout = (adjusted.workout as WorkoutSegment[]).map((segment: WorkoutSegment) => {
+                    if ('reps' in segment && segment.reps !== undefined) {
+                        return { ...segment, reps: (segment.reps || 1) + 1 };
+                    }
+                    return segment;
+                });
+            }
+            adjusted.notes = `${(adjusted.notes as string) || ""} (Modified - increased workout volume)`;
+            break;
+        case "shorter":
+            // For shorter workouts, reduce by at most one rep at a time
+            if (adjusted.workout && Array.isArray(adjusted.workout)) {
+                adjusted.workout = (adjusted.workout as WorkoutSegment[]).map((segment: WorkoutSegment) => {
+                    if ('reps' in segment && segment.reps !== undefined && segment.reps > 1) {
+                        return { ...segment, reps: Math.max(1, segment.reps - 1) };
+                    }
+                    return segment;
+                });
+            }
+            adjusted.notes = `${(adjusted.notes as string) || ""} (Modified - decreased workout volume)`;
+            break;
+        case "moderate":
+            // For moderate adjustments, make smaller changes
+            if (adjusted.workout && Array.isArray(adjusted.workout)) {
+                adjusted.workout = (adjusted.workout as WorkoutSegment[]).map((segment: WorkoutSegment) => {
+                    if ('reps' in segment && segment.reps !== undefined && segment.reps > 1) {
+                        // Reduce by 0.5 reps (round down to avoid going below 1)
+                        const newReps = Math.max(1, Math.floor(segment.reps - 0.5));
+                        return { ...segment, reps: newReps };
+                    }
+                    return segment;
+                });
+            }
+            adjusted.notes = `${(adjusted.notes as string) || ""} (Modified - slight volume adjustment)`;
+            break;
+    }
+
+    return adjusted;
+}
+
+// Helper function to recalculate workout distance and duration from segments
+function recalculateWorkoutMetrics(workout: Record<string, unknown>): Record<string, unknown> {
+    const adjusted = { ...workout };
+    
+    if (adjusted.workout && Array.isArray(adjusted.workout)) {
+        try {
+            // Create mock training paces for calculation (this should ideally come from user's VDOT)
+            const mockTrainingPaces = {
+                "1500": 5.5, "Mile": 5.5, "3K": 5.5, "5K": 5.5, "10K": 5.5,
+                "Half Marathon": 5.5, "Marathon": 5.5, "LT2": [5.5, 5.5] as [number, number], 
+                "LT1": [5.5, 5.5] as [number, number], "Easy": [7.0, 7.0] as [number, number], 
+                "Hills": [6.0, 6.0] as [number, number]
+            };
+            
+            const { distance, duration } = calculateDistanceAndDurationFromWorkoutSegments(
+                adjusted.workout as WorkoutSegment[], 
+                mockTrainingPaces
+            );
+            
+            adjusted.distance = distance;
+            adjusted.duration = duration;
+            
+            console.log(`Recalculated workout metrics: distance=${distance}, duration=${duration}`);
+        } catch (error) {
+            console.error("Error recalculating workout metrics:", error);
+            // Fallback to original values if calculation fails
+        }
+    }
+    
+    return adjusted;
+}
+
+// Helper function to update week totals after workout modifications
+function updateWeekTotals(weeks: TrainingWeek[]): TrainingWeek[] {
+    return weeks.map(week => {
+        let totalMileage = 0;
+        let totalDuration = 0;
+        
+        week.workouts.forEach(workout => {
+            totalMileage += workout.distance || 0;
+            totalDuration += workout.duration || 0;
+        });
+        
+        return {
+            ...week,
+            totalMileage: Math.round(totalMileage * 10) / 10, // Round to 1 decimal place
+            totalDuration: Math.round(totalDuration / 60) * 60 // Round to nearest minute
+        };
+    });
 }
 
 // AI response generation
@@ -1228,7 +1415,7 @@ async function applyModificationsToPlan(
         console.log("=== APPLYING MODIFICATIONS TO PLAN ===");
         console.log("Current weeks structure:", JSON.stringify(currentWeeks.map(w => ({ id: w.id, week: w.week, workoutCount: w.workouts.length })), null, 2));
         
-        const updatedWeeks = [...currentWeeks];
+        let updatedWeeks = [...currentWeeks];
         
         // Determine target date - check if action has a specific date parameter
         let targetDate: Date;
@@ -1287,8 +1474,20 @@ async function applyModificationsToPlan(
                 const intensity = action.parameters.intensity as string;
                 console.log(`Adjusting workout intensity to: ${intensity}`);
                 const adjustedWorkout = adjustWorkoutIntensity(targetWorkout, intensity);
-                updatedWeeks[targetWeekIndex].workouts[targetWorkoutIndex] = adjustedWorkout as TrainingWorkout;
-                console.log("Adjusted workout:", JSON.stringify(adjustedWorkout, null, 2));
+                // Recalculate metrics after intensity adjustment
+                const recalculatedIntensityWorkout = recalculateWorkoutMetrics(adjustedWorkout);
+                updatedWeeks[targetWeekIndex].workouts[targetWorkoutIndex] = recalculatedIntensityWorkout as TrainingWorkout;
+                console.log("Adjusted workout:", JSON.stringify(recalculatedIntensityWorkout, null, 2));
+                break;
+                
+            case 'adjust_workout_length':
+                const length = action.parameters.length as string;
+                console.log(`Adjusting workout length to: ${length}`);
+                const lengthAdjustedWorkout = adjustWorkoutLength(targetWorkout, length);
+                // Recalculate metrics after length adjustment
+                const recalculatedLengthWorkout = recalculateWorkoutMetrics(lengthAdjustedWorkout);
+                updatedWeeks[targetWeekIndex].workouts[targetWorkoutIndex] = recalculatedLengthWorkout as TrainingWorkout;
+                console.log("Length adjusted workout:", JSON.stringify(recalculatedLengthWorkout, null, 2));
                 break;
                 
             case 'skip_workout':
@@ -1319,6 +1518,10 @@ async function applyModificationsToPlan(
                 break;
         }
         
+        // Update week totals after modifications
+        updatedWeeks = updateWeekTotals(updatedWeeks);
+        console.log("Updated week totals after modifications");
+        
         console.log("=== SAVING TO FIRESTORE ===");
         console.log("Updated weeks structure:", JSON.stringify(updatedWeeks.map(w => ({ id: w.id, week: w.week, workoutCount: w.workouts.length })), null, 2));
         
@@ -1335,8 +1538,22 @@ async function applyModificationsToPlan(
 
 // Helper function to get the next occurrence of a day of the week
 function getNextDayOfWeek(dayOfWeek: string): Date {
+    const dayOfWeekLower = dayOfWeek.toLowerCase();
+    
+    // Handle special cases
+    if (dayOfWeekLower === 'tomorrow') {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        return tomorrow;
+    }
+    
+    if (dayOfWeekLower === 'today') {
+        return new Date();
+    }
+    
+    // Handle day names
     const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const targetDayIndex = days.indexOf(dayOfWeek);
+    const targetDayIndex = days.indexOf(dayOfWeekLower);
     
     if (targetDayIndex === -1) {
         console.log(`Invalid day of week: ${dayOfWeek}, defaulting to today`);

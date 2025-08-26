@@ -3,6 +3,7 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 import { MessageSquare, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { TrainingWeek } from '@/lib/types';
 
 interface FeedbackModalProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ interface FeedbackResponse {
   success: boolean;
   planId?: string;
   toVersion?: number;
-  updatedWeeks?: any[];
+  updatedWeeks?: TrainingWeek[];
   warnings?: string[];
   error?: string;
 }
