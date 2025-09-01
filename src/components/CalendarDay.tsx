@@ -46,7 +46,7 @@ export default function CalendarDay({ day, workouts }: Props) {
                         <div
                             key={i}
                             title={w.notes || w.name}
-                            className={`px-2 py-1 rounded-md text-xs text-white font-medium truncate ${getTagColor(w.type)}`}
+                            className={`px-2 py-1 rounded-md text-xs text-white font-medium truncate ${getTagColor('type' in w ? w.type : undefined)}`}
                         >
                             {w.name}
                         </div>

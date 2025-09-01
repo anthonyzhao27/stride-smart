@@ -1,7 +1,7 @@
 // lib/firebaseUtils.ts
 import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { TrainingWorkout, LoggedWorkout } from "@/lib/types";
+import { LoggedWorkout } from "@/lib/types";
 
 export async function fetchWorkoutsForMonth(start: Date, uid: string): Promise<Record<string, LoggedWorkout[]>> {
     const end = new Date(start);

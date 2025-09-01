@@ -12,7 +12,7 @@ const tagColorMap: Record<TrainingWorkout['tags'], string> = {
     LongRun: 'bg-purple-100 text-purple-800',
     Easy: 'bg-gray-100 text-gray-800',
     Crosstrain: 'bg-orange-100 text-orange-800',
-    Off: 'bg-zinc-100 text-zinc-500',
+    // Off: 'bg-zinc-100 text-zinc-500', // Removed as it's not in the Tags type
     VO2Max: 'bg-teal-100 text-teal-800',
     RaceSpecific: 'bg-pink-100 text-pink-800',
     Speed: 'bg-indigo-100 text-indigo-800',

@@ -9,7 +9,7 @@ interface FeedbackHistoryItem {
   message: string;
   status: 'success' | 'error' | 'pending';
   warnings?: string[];
-  changes?: any[];
+  changes?: string[];
 }
 
 interface FeedbackHistoryProps {
