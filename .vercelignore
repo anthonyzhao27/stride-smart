@@ -52,7 +52,4 @@ node_modules/
 # Yarn Integrity file
 .yarn-integrity
 
-# DynamoDB files (not needed for Firebase deployment)
-src/lib/dynamodb.ts
-src/lib/dynamodb-types.ts
-src/lib/dynamodb-service.ts
+
