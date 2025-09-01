@@ -16,6 +16,11 @@ export default function AuthForm() {
         e.preventDefault();
         setError('');
 
+        if (!auth) {
+            setError('Authentication not available. Please check your configuration.');
+            return;
+        }
+
         try {
             await signInWithEmailAndPassword(auth, email, password);
             router.push('/dashboard'); // Redirect to dashboard on successful login
@@ -25,6 +30,11 @@ export default function AuthForm() {
     };
 
     const handleGoogleSignIn = async () => {
+        if (!auth || !googleProvider) {
+            setError('Authentication not available. Please check your configuration.');
+            return;
+        }
+
         try {
             await signInWithPopup(auth, googleProvider);
             router.push('/dashboard'); // Redirect to dashboard on successful Google login

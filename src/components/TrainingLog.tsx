@@ -15,10 +15,14 @@ export default function TrainingLog() {
 
     
     useEffect(() => {
-        if (!user) return;
+        if (!user || !db) return;
         
         const fetchTrainingLogs = async () => {
             try {
+                if (!db) {
+                    console.error("Firestore not available");
+                    return;
+                }
                 const logsRef = collection(db, 'users', user.uid, 'plans');
                 const logsQuery = query(logsRef, orderBy('week', 'asc'));
                 const querySnapshot = await getDocs(logsQuery);

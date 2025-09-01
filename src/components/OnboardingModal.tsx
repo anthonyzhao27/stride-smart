@@ -113,6 +113,10 @@ export default function OnboardingModal({
         };
 
         try {
+            if (!db) {
+                console.error("Firestore not available");
+                return;
+            }
             await setDoc(doc(db, "users", uid, "onboardingData", "profile"), payload);
             
             onSubmit(payload);

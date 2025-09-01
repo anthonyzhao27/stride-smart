@@ -20,6 +20,11 @@ export default function SignUpForm() {
             return;
         }
 
+        if (!auth) {
+            setError('Authentication not available. Please check your configuration.');
+            return;
+        }
+
         try {
             await createUserWithEmailAndPassword(auth, email, password);
             router.push('/login'); // Redirect to dashboard on successful signup
