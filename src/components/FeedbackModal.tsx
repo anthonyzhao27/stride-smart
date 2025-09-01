@@ -133,11 +133,11 @@ export default function FeedbackModal({ isOpen, onClose, planId, userId }: Feedb
                       💡 Examples of what you can ask:
                     </h4>
                     <ul className="space-y-1 text-sm text-blue-700 dark:text-blue-300">
-                      <li>• "Move my long run from Sunday to Saturday"</li>
-                      <li>• "Reduce the intensity of my Tuesday workout"</li>
-                      <li>• "Add an extra rest day this week"</li>
-                      <li>• "Swap my Wednesday and Friday workouts"</li>
-                      <li>• "Increase my weekly mileage by 10%"</li>
+                      <li>• &quot;Move my long run from Sunday to Saturday&quot;</li>
+                      <li>• &quot;Reduce the intensity of my Tuesday workout&quot;</li>
+                      <li>• &quot;Add an extra rest day this week&quot;</li>
+                      <li>• &quot;Swap my Wednesday and Friday workouts&quot;</li>
+                      <li>• &quot;Increase my weekly mileage by 10%&quot;</li>
                     </ul>
                   </div>
 

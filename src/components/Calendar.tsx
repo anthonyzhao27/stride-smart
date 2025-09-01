@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react';
 import { getStartofCalendarMonth, getDaysForCalendar } from '@/lib/calendarUtils';
 import { fetchWorkoutsForMonth } from '@/lib/firebaseUtils';
-import CalendarDay from './CalendarDay';
-import { TrainingWorkout, LoggedWorkout } from '@/lib/types';
+import { LoggedWorkout } from '@/lib/types';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Calendar() {

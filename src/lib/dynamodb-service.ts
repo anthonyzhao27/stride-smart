@@ -1,5 +1,5 @@
 import { dynamoOperations, TABLES } from './dynamodb';
-import { LoggedWorkout, TrainingWorkout, User } from './types';
+import { LoggedWorkout, User } from './types';
 
 // DynamoDB Service Layer - Firebase to DynamoDB Migration
 export class DynamoDBService {
@@ -59,19 +59,19 @@ export class DynamoDBService {
     const workouts = result.Items || [];
     const resultMap: Record<string, LoggedWorkout[]> = {};
 
-    workouts.forEach((item: any) => {
+    workouts.forEach((item: Record<string, unknown>) => {
       const workout: LoggedWorkout = {
-        id: item.id,
-        name: item.name,
-        timestamp: new Date(item.timestamp),
-        date: item.date,
-        time: item.time,
-        duration: item.duration,
-        distance: item.distance,
-        unit: item.unit,
-        type: item.type,
-        effortLevel: item.effortLevel,
-        notes: item.notes,
+        id: item.id as string,
+        name: item.name as string,
+        timestamp: new Date(item.timestamp as string),
+        date: item.date as string,
+        time: item.time as string,
+        duration: item.duration as number,
+        distance: item.distance as number | undefined,
+        unit: item.unit as string,
+        type: item.type as string,
+        effortLevel: item.effortLevel as string,
+        notes: item.notes as string,
       };
 
       if (!resultMap[workout.date]) {
@@ -93,25 +93,25 @@ export class DynamoDBService {
     });
 
     const workouts = result.Items || [];
-    return workouts.map((item: any) => ({
-      id: item.id,
-      name: item.name,
-      timestamp: new Date(item.timestamp),
-      date: item.date,
-      time: item.time,
-      duration: item.duration,
-      distance: item.distance,
-      unit: item.unit,
-      type: item.type,
-      effortLevel: item.effortLevel,
-      notes: item.notes,
+    return workouts.map((item: Record<string, unknown>) => ({
+      id: item.id as string,
+      name: item.name as string,
+      timestamp: new Date(item.timestamp as string),
+      date: item.date as string,
+      time: item.time as string,
+      duration: item.duration as number,
+      distance: item.distance as number | undefined,
+      unit: item.unit as string,
+      type: item.type as string,
+      effortLevel: item.effortLevel as string,
+      notes: item.notes as string,
     }));
   }
 
   // Update a workout
   static async updateWorkout(uid: string, workoutId: string, updates: Partial<LoggedWorkout>): Promise<void> {
     const updateExpression: string[] = [];
-    const expressionAttributeValues: Record<string, any> = {};
+    const expressionAttributeValues: Record<string, unknown> = {};
     const expressionAttributeNames: Record<string, string> = {};
 
     // Build dynamic update expression
@@ -151,7 +151,7 @@ export class DynamoDBService {
   // ===== USERS =====
   
   // Create or update user profile
-  static async setUserProfile(uid: string, userData: User): Promise<void> {
+  static async setUserProfile(uid: string, userData: User & { email?: string; name?: string }): Promise<void> {
     await dynamoOperations.putItem(TABLES.USERS, {
       id: uid,
       email: userData.email || '',
@@ -201,7 +201,7 @@ export class DynamoDBService {
   // ===== WORKOUT PLANS =====
   
   // Save workout plan
-  static async saveWorkoutPlan(uid: string, plan: any): Promise<void> {
+  static async saveWorkoutPlan(uid: string, plan: Record<string, unknown>): Promise<void> {
     await dynamoOperations.putItem(TABLES.WORKOUT_PLANS, {
       id: `${uid}-${Date.now()}`,
       userId: uid,
@@ -214,7 +214,7 @@ export class DynamoDBService {
   }
 
   // Get user's workout plans
-  static async getUserWorkoutPlans(uid: string): Promise<any[]> {
+  static async getUserWorkoutPlans(uid: string): Promise<Record<string, unknown>[]> {
     const result = await dynamoOperations.queryItems(TABLES.WORKOUT_PLANS, {
       KeyConditionExpression: 'userId = :userId',
       ExpressionAttributeValues: {

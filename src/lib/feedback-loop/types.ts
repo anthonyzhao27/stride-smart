@@ -1,4 +1,6 @@
-import { TrainingWorkout } from "@/lib/types";
+import { TrainingWorkout, TrainingWeek } from "@/lib/types";
+
+export type { TrainingWorkout, TrainingWeek };
 
 export type PlanOperation =
     | MoveWorkoutOp

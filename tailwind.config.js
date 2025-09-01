@@ -1,5 +1,4 @@
 // tailwind.config.js
-import lineClamp from '@tailwindcss/line-clamp';
 
 module.exports = {
   darkMode: 'class', // ✅ Good — this enables manual dark mode toggling
@@ -19,5 +18,5 @@ module.exports = {
         },
     },
   },
-  plugins: [lineClamp],
+  plugins: [],
 };

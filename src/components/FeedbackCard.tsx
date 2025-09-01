@@ -25,21 +25,21 @@ export default function FeedbackCard({ planId, userId, className = '' }: Feedbac
           
           <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
             Not happy with your current training plan? Let us know how we can improve it! 
-            Use natural language to describe the changes you'd like to make.
+            Use natural language to describe the changes you&apos;d like to make.
           </p>
 
           <div className="space-y-2 text-xs text-gray-500 dark:text-gray-400">
             <p className="flex items-center gap-1">
               <span className="w-1 h-1 bg-green-400 rounded-full"></span>
-              "Move my long run from Sunday to Saturday"
+              &quot;Move my long run from Sunday to Saturday&quot;
             </p>
             <p className="flex items-center gap-1">
               <span className="w-1 h-1 bg-green-400 rounded-full"></span>
-              "Reduce the intensity of my Tuesday workout"
+              &quot;Reduce the intensity of my Tuesday workout&quot;
             </p>
             <p className="flex items-center gap-1">
               <span className="w-1 h-1 bg-green-400 rounded-full"></span>
-              "Add an extra rest day this week"
+              &quot;Add an extra rest day this week&quot;
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where, Timestamp } from "firebase/firestore";
+import { collection, getDocs, query, Timestamp } from "firebase/firestore";
 import { db } from "./firebase";
 import { DynamoDBService } from "./dynamodb-service";
 import { LoggedWorkout, User } from "./types";

@@ -184,21 +184,16 @@ export default function Dashboard() {
                     <div className="flex-1 min-h-[350px] h-full flex flex-col">
                         <TrainingCard
                             workout={{
-                            id: 'upcoming-workout',
                             name: '8x1k Cruise Intervals',
                             date: new Date('2025-06-15'),
                             dayOfWeek: 'Tuesday',
                             tags: 'LT2',
-                            type: 'Cruise Intervals',
-                            duration: "5x6 min",
+                            distance: 9,
+                            duration: 70,
                             targetHeartRate: '160–170 bpm',
-                            targetEffortLevel: 'Hard',
-                            targetPace: '6:00-6:20/mi',
-                            rest: '90s jog',
-                            warmup: '15 min jog',
+                            targetPace: [{ type: 'LT2', pace: [6.0, 6.2] }],
+                            warmup: [{ type: 'Easy', length: { amount: 15, type: 'time' } }],
                             cooldown: '15 min',
-                            totalDistance: '9 mi',
-                            totalDuration: '70 min',
                             notes: 'Keep pace controlled. This is not a VO2 max session.',
                             }}
                         />

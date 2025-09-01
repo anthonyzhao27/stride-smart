@@ -24,7 +24,7 @@ export interface DynamoDBWorkoutPlan {
   userId: string;
   name: string;
   description?: string;
-  workouts: any[];
+  workouts: Record<string, unknown>[];
   createdAt: string;
   updatedAt: string;
 }
@@ -34,17 +34,17 @@ export interface QueryParams {
   KeyConditionExpression?: string;
   FilterExpression?: string;
   ExpressionAttributeNames?: Record<string, string>;
-  ExpressionAttributeValues?: Record<string, any>;
+  ExpressionAttributeValues?: Record<string, unknown>;
   IndexName?: string;
   Limit?: number;
-  ExclusiveStartKey?: Record<string, any>;
+  ExclusiveStartKey?: Record<string, unknown>;
 }
 
 // Update parameters
 export interface UpdateParams {
   UpdateExpression: string;
   ExpressionAttributeNames?: Record<string, string>;
-  ExpressionAttributeValues: Record<string, any>;
+  ExpressionAttributeValues: Record<string, unknown>;
 }
 
 // Response types
@@ -52,7 +52,7 @@ export interface DynamoDBResponse<T> {
   Items?: T[];
   Count?: number;
   ScannedCount?: number;
-  LastEvaluatedKey?: Record<string, any>;
+  LastEvaluatedKey?: Record<string, unknown>;
 }
 
 export interface DynamoDBError {

@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
     console.log(`🧪 Testing AI functions for user: ${userId}, plan: ${planId}, test: ${testType}`);
     
     try {
-        const results: Record<string, any> = {};
+        const results: Record<string, unknown> = {};
         
         switch (testType) {
             case 'workout':

@@ -5,9 +5,7 @@ const nextConfig = {
     domains: ['www.gstatic.com', "ui-avatars.com", 'lh3.googleusercontent.com'],
   },
   // Vercel optimizations
-  experimental: {
-    serverComponentsExternalPackages: ['firebase'],
-  },
+  serverExternalPackages: ['firebase'],
   // Ensure proper environment variable handling for Firebase
   env: {
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,

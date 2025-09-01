@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { dynamoOperations, TABLES } from '@/lib/dynamodb';
-import { DynamoDBWorkout } from '@/lib/dynamodb-types';
 
 // GET /api/workouts/[id] - Get a specific workout
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
 
     // Extract userId from the ID (format: userId-timestamp)
     const userId = id.split('-')[0];
@@ -38,10 +37,10 @@ export async function GET(
 // PUT /api/workouts/[id] - Update a workout
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
     const { type, distance, duration, notes } = body;
 
@@ -63,7 +62,7 @@ export async function PUT(
 
     // Build update expression
     const updateExpression = [];
-    const expressionAttributeValues: Record<string, any> = {};
+    const expressionAttributeValues: Record<string, unknown> = {};
     const expressionAttributeNames: Record<string, string> = {};
 
     if (type !== undefined) {
@@ -125,10 +124,10 @@ export async function PUT(
 // DELETE /api/workouts/[id] - Delete a workout
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const userId = id.split('-')[0];
 
     // Check if workout exists

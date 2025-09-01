@@ -69,7 +69,7 @@ async function testAllFunctions() {
 }
 
 // Test individual functions
-async function testIndividualFunction(functionName: string, testFunction: () => Promise<any>) {
+async function testIndividualFunction(functionName: string, testFunction: () => Promise<unknown>) {
     console.log(`🧪 Testing ${functionName}...`);
     try {
         const result = await testFunction();

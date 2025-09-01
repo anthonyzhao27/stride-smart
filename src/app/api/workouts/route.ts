@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
       updatedAt: now,
     };
 
-    await dynamoOperations.putItem(TABLES.WORKOUTS, workout);
+    await dynamoOperations.putItem(TABLES.WORKOUTS, workout as unknown as Record<string, unknown>);
 
     return NextResponse.json(
       { message: 'Workout created successfully', workout },
