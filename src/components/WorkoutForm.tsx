@@ -106,6 +106,11 @@ export default function WorkoutForm({
 
         console.log('🚀 Form is submitting:', data);
         try {
+            if (!db) {
+                console.error("Firestore not available");
+                return;
+            }
+
             if (selectedWorkout) {
                 const docRef = doc(db, "users", uid, "workouts", selectedWorkout.id);
                 await updateDoc(docRef, {

@@ -65,7 +65,7 @@ export default function Dashboard() {
 
     useEffect(() => {
         const checkOnboarding = async () => {
-            if (!uid) return;
+            if (!uid || !db) return;
             
             const onboardingRef = doc(db, "users", uid, "onboardingData", "profile");
             const onboardingSnap = await getDoc(onboardingRef);
@@ -77,7 +77,7 @@ export default function Dashboard() {
     }, [uid]);
 
     useEffect(() => {
-        if (!uid) return;
+        if (!uid || !db) return;
 
         const q = query(
             collection(db, "users", uid, "workouts"),
@@ -116,7 +116,7 @@ export default function Dashboard() {
     }, [uid]);
 
     const handleDelete = async (id: string) => {
-        if (!uid) return;
+        if (!uid || !db) return;
         
         try {
             await deleteDoc(doc(db, "users", uid, "workouts", id));

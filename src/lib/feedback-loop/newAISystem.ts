@@ -989,6 +989,10 @@ export async function retrieveData(dataNeeded: string[], userId: string, planId:
 
 export async function getWorkoutForDate(date: Date, userId: string, planId: string): Promise<Record<string, unknown>> {
     try {
+        if (!db) {
+            throw new Error("Firestore not available");
+        }
+
         console.log(`=== GETTING WORKOUT FOR DATE ===`);
         console.log(`Target date: ${date.toDateString()}`);
         console.log(`User ID: ${userId}`);

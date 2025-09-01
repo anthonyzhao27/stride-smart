@@ -24,6 +24,10 @@ export const firestoreRepo: PlanRepo = {
   async savePlan(userId, planId, updatedPlan, expectedVersion, audit) {
     console.log(`Saving plan for userId: ${userId}, planId: ${planId}, weeks: ${updatedPlan.length}`);
     
+    if (!db) {
+      throw new Error("Firestore not available");
+    }
+    
     // If this is a multi-week plan (current-plan), we need to save each week individually
     if (planId === 'current-plan' || planId === 'default') {
       // Save each week as a separate document
