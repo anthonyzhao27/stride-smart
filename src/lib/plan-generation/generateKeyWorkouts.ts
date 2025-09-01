@@ -10,15 +10,13 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
 
     const raceSpecific = mileageProgression[week - 1].raceSpecific;
 
-    const { doubleThresholdDays, LT1Day, LT2Day, HillsRaceDay } = assignWorkoutDays(input, raceSpecific);
+    const { doubleThresholdDays, LT1Day, LT2Day } = assignWorkoutDays(input, raceSpecific);
     
     const thresholds = getThresholdTimeTargets(input, week);
 
     const numLT1Workouts = (doubleThresholdDays ? doubleThresholdDays.length : 0) + (LT1Day ? 1 : 0);
 
     const numLT2Workouts = (doubleThresholdDays ? doubleThresholdDays.length : 0) + (LT2Day ? 1 : 0);
-
-    const hasHillsRaceDay = HillsRaceDay !== undefined;
     
     const messages: ChatCompletionMessageParam[] = [
         {
@@ -27,23 +25,22 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
         },
         {
             role: "user",
-            content: `Create hard workouts for a week of training using Norwegian threshold training principles. Tailor the training to the runner’s experience and current fitness.
+            content: `Create hard workouts for a week of training using Norwegian threshold training principles. Tailor the training to the runner's experience and current fitness.
             
             - For threshold workouts, use time-based durations, not distance
             - Generate exactly ${numLT1Workouts} LT1 workouts (80-83% MHR) and ${numLT2Workouts} LT2 (85-88% MHR) workouts.
-            - Each LT2 workout, excluding warmup and cooldown, should total ${thresholds.LT1 * 60} seconds. All reps within a single LT2 workout must be the same duration. The allowed rep durations are exactly 360, 540, or 720 seconds. Do not mix different durations in the same workout.
+            - Each LT1 workout, excluding warmup and cooldown, should total ${thresholds.LT1 * 60} seconds. All reps within a single LT1 workout must be the same duration. The allowed rep durations are exactly 360, 540, or 720 seconds. Do not mix different durations in the same workout.
             - Each LT2 workout, excluding warmup and cooldown, should total ${thresholds.LT2 * 60} seconds. All reps within a single LT2 workout must be the same duration. The allowed rep durations are exactly 180, 360, or 540 seconds. Do not mix different durations in the same workout.
             - Threshold workout rep to rest time should be 3:1
-            ${hasHillsRaceDay && `- Generate exactly 1 ${raceSpecific ? `${input.goalRaceDistance} specific workout. Race-specific workouts should incorporate paces faster and slower than target race pace. Only race-specific workouts should be created with distance, not time.`: 'hill @5k effort workout. Hill workouts should be created with time, not distance.'}`}
             - Return workouts only — do not assign to specific days.
-            - Do not include easy runs or off days
+            - Do not include easy runs, off days, long runs, or hill workouts (these are handled separately or removed)
             - Include warmup/cooldown for all workouts
             - Provide output as an array of workouts with name, tags, and full breakdown of reps/warmups/cooldowns
             - Threshold in warmups should be a maximum of 4 minutes in total, comprising of either 1 or 2 minute reps at either LT1 or LT2 pace, with half the time of rest between reps.
             - Threshold in warmups should be the LAST thing before the workout.
-            - LT2, VO2Max, and Race Specific workouts should include a threshold warmup.
+            - LT2 workouts should include a threshold warmup.
             - The easy portion of warmups and cooldown should both be at least 15 minutes long.
-            - Include a minimum of 1, at most 4, reps of 3 minutes at LT1 pace after Hill/Race-specific workouts as part of the workout
+            - IMPORTANT: Do NOT generate any LongRun or Hills workouts - these are handled separately or removed
             `.trim()
         }];
         
@@ -65,7 +62,8 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
                                     },
                                     tags: {
                                         type: "string",
-                                        enum: ["LT1", "LT2", "Hills", "LongRun"],
+                                        enum: ["LT1", "LT2"],
+                                        description: "Workout type. Do NOT include LongRun or Hills - those are handled separately or removed."
                                     },
                                     workout: {
                                         type: "array",
@@ -78,7 +76,7 @@ export async function generateKeyWorkouts( input: User, week: number): Promise<T
                                                         type: {
                                                             type: "string",
                                                             description: "The type of interval or run segment",
-                                                            enum: ["1500", "Mile", "3K", "5K", "10K", "Half Marathon", "Marathon", "LT2", "LT1", "Easy", "Hills"]
+                                                            enum: ["1500", "Mile", "3K", "5K", "10K", "Half Marathon", "Marathon", "LT2", "LT1", "Easy"]
                                                         },
                                                         reps: {
                                                             type: "number",

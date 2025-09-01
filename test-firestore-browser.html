@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Firestore Save Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .test-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-button:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .config-section {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .config-input {
+            width: 100%;
+            padding: 8px;
+            margin: 5px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Firestore Save Test</h1>
+        
+        <div class="config-section">
+            <h3>⚙️ Configuration</h3>
+            <p>Make sure you have Firebase configured in your project and the Firebase SDK loaded.</p>
+            <label for="userId">Test User ID:</label>
+            <input type="text" id="userId" class="config-input" value="test_user_123" placeholder="Enter test user ID">
+            <label for="planId">Test Plan ID:</label>
+            <input type="text" id="planId" class="config-input" value="current-plan" placeholder="Enter test plan ID">
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Test 1: Single Week Save</h3>
+            <p>Test saving a single training week to Firestore.</p>
+            <button class="test-button" onclick="testSingleWeekSave()">Run Single Week Test</button>
+            <div id="singleWeekResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Test 2: Multiple Weeks Save</h3>
+            <p>Test saving multiple training weeks to Firestore.</p>
+            <button class="test-button" onclick="testMultipleWeeksSave()">Run Multiple Weeks Test</button>
+            <div id="multipleWeeksResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Test 3: Legacy Plan Save</h3>
+            <p>Test saving to a specific plan ID (legacy mode).</p>
+            <button class="test-button" onclick="testLegacyPlanSave()">Run Legacy Plan Test</button>
+            <div id="legacyPlanResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>📝 Test 4: Full Test Suite</h3>
+            <p>Run all tests in sequence.</p>
+            <button class="test-button" onclick="runAllTests()">Run All Tests</button>
+            <div id="allTestsResult" class="result"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>🔍 Verify Data</h3>
+            <p>Check if the test data was actually saved to Firestore.</p>
+            <button class="test-button" onclick="verifySavedData()">Verify Saved Data</button>
+            <div id="verifyResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        // Mock data for testing
+        const mockTrainingWeek = {
+            id: "test_week_1",
+            week: 1,
+            startDate: new Date("2024-01-01"),
+            endDate: new Date("2024-01-07"),
+            totalMileage: 25.5,
+            totalDuration: 180,
+            description: "Test week for Firestore saving",
+            workouts: [
+                {
+                    name: "Easy Run",
+                    date: new Date("2024-01-01"),
+                    distance: 5,
+                    duration: 45,
+                    tags: "Easy",
+                    notes: "Test workout 1"
+                },
+                {
+                    name: "Tempo Run",
+                    date: new Date("2024-01-03"),
+                    distance: 8,
+                    duration: 60,
+                    tags: "LT2",
+                    notes: "Test workout 2"
+                }
+            ]
+        };
+
+        const mockWeek2 = {
+            id: "test_week_2",
+            week: 2,
+            startDate: new Date("2024-01-08"),
+            endDate: new Date("2024-01-14"),
+            totalMileage: 12,
+            totalDuration: 90,
+            description: "Test week 2 for Firestore saving",
+            workouts: [
+                {
+                    name: "Long Run",
+                    date: new Date("2024-01-08"),
+                    distance: 12,
+                    duration: 90,
+                    tags: "Easy",
+                    notes: "Test long run"
+                }
+            ]
+        };
+
+        // Test functions
+        async function testSingleWeekSave() {
+            const resultDiv = document.getElementById('singleWeekResult');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = 'Running single week save test...';
+
+            try {
+                const userId = document.getElementById('userId').value;
+                const planId = document.getElementById('planId').value;
+
+                // Check if Firebase is available
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase is not loaded. Make sure you have the Firebase SDK included.');
+                }
+
+                const db = firebase.firestore();
+                
+                // Save single week
+                const weekRef = db.collection('users').doc(userId).collection('plans').doc('test_week_1');
+                await weekRef.set({
+                    ...mockTrainingWeek,
+                    startDate: mockTrainingWeek.startDate,
+                    endDate: mockTrainingWeek.endDate,
+                    workouts: mockTrainingWeek.workouts.map(w => ({
+                        ...w,
+                        date: w.date
+                    })),
+                    updatedAt: new Date().toISOString(),
+                    version: 1
+                }, { merge: true });
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Single week saved successfully!\nWeek ID: test_week_1\nUser ID: ${userId}\nPlan ID: ${planId}`;
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Single week save failed:\n${error.message}`;
+            }
+        }
+
+        async function testMultipleWeeksSave() {
+            const resultDiv = document.getElementById('multipleWeeksResult');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = 'Running multiple weeks save test...';
+
+            try {
+                const userId = document.getElementById('userId').value;
+                const planId = document.getElementById('planId').value;
+
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase is not loaded.');
+                }
+
+                const db = firebase.firestore();
+                
+                // Save multiple weeks
+                const weeks = [mockTrainingWeek, mockWeek2];
+                for (const week of weeks) {
+                    const weekRef = db.collection('users').doc(userId).collection('plans').doc(week.id);
+                    await weekRef.set({
+                        ...week,
+                        startDate: week.startDate,
+                        endDate: week.endDate,
+                        workouts: week.workouts.map(w => ({
+                            ...w,
+                            date: w.date
+                        })),
+                        updatedAt: new Date().toISOString(),
+                        version: 2
+                    }, { merge: true });
+                }
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Multiple weeks saved successfully!\nWeeks saved: ${weeks.length}\nUser ID: ${userId}\nPlan ID: ${planId}`;
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Multiple weeks save failed:\n${error.message}`;
+            }
+        }
+
+        async function testLegacyPlanSave() {
+            const resultDiv = document.getElementById('legacyPlanResult');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = 'Running legacy plan save test...';
+
+            try {
+                const userId = document.getElementById('userId').value;
+                const planId = 'legacy-plan-456';
+
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase is not loaded.');
+                }
+
+                const db = firebase.firestore();
+                
+                // Save as legacy plan document
+                const planRef = db.collection('users').doc(userId).collection('plans').doc(planId);
+                await planRef.set({
+                    weeks: [mockTrainingWeek],
+                    version: 1,
+                    updatedAt: new Date().toISOString(),
+                    changelog: [{
+                        atISO: new Date().toISOString(),
+                        actor: "TEST_SCRIPT",
+                        operations: [],
+                        changeset: [],
+                        warnings: []
+                    }]
+                }, { merge: true });
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = `✅ Legacy plan saved successfully!\nPlan ID: ${planId}\nUser ID: ${userId}`;
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Legacy plan save failed:\n${error.message}`;
+            }
+        }
+
+        async function runAllTests() {
+            const resultDiv = document.getElementById('allTestsResult');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = 'Running all tests...\n';
+
+            try {
+                await testSingleWeekSave();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                await testMultipleWeeksSave();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                await testLegacyPlanSave();
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = '🎉 All tests completed successfully!';
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Some tests failed:\n${error.message}`;
+            }
+        }
+
+        async function verifySavedData() {
+            const resultDiv = document.getElementById('verifyResult');
+            resultDiv.className = 'result info';
+            resultDiv.textContent = 'Verifying saved data...';
+
+            try {
+                const userId = document.getElementById('userId').value;
+
+                if (typeof firebase === 'undefined') {
+                    throw new Error('Firebase is not loaded.');
+                }
+
+                const db = firebase.firestore();
+                
+                // Check for saved weeks
+                const plansRef = db.collection('users').doc(userId).collection('plans');
+                const snapshot = await plansRef.get();
+                
+                if (snapshot.empty) {
+                    resultDiv.className = 'result error';
+                    resultDiv.textContent = '❌ No data found in Firestore.';
+                    return;
+                }
+
+                let result = `✅ Found ${snapshot.docs.length} document(s) in Firestore:\n\n`;
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    result += `Document ID: ${doc.id}\n`;
+                    result += `Type: ${data.weeks ? 'Legacy Plan' : 'Week'}\n`;
+                    if (data.weeks) {
+                        result += `Weeks: ${data.weeks.length}\n`;
+                    } else {
+                        result += `Week: ${data.week}\n`;
+                        result += `Workouts: ${data.workouts ? data.workouts.length : 0}\n`;
+                    }
+                    result += `Version: ${data.version || 'N/A'}\n`;
+                    result += `Updated: ${data.updatedAt || 'N/A'}\n`;
+                    result += '---\n';
+                });
+
+                resultDiv.className = 'result success';
+                resultDiv.textContent = result;
+
+            } catch (error) {
+                resultDiv.className = 'result error';
+                resultDiv.textContent = `❌ Verification failed:\n${error.message}`;
+            }
+        }
+
+        // Check if Firebase is available
+        window.addEventListener('load', function() {
+            if (typeof firebase === 'undefined') {
+                const container = document.querySelector('.container');
+                const warning = document.createElement('div');
+                warning.className = 'test-section';
+                warning.style.background = '#f8d7da';
+                warning.style.border = '1px solid #f5c6cb';
+                warning.style.color = '#721c24';
+                warning.innerHTML = `
+                    <h3>⚠️ Firebase Not Loaded</h3>
+                    <p>This test requires Firebase to be loaded. Make sure you have included the Firebase SDK in your project.</p>
+                    <p>You can add it by including these scripts in your HTML:</p>
+                    <pre>&lt;script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-app.js"&gt;&lt;/script&gt;
+&lt;script src="https://www.gstatic.com/firebasejs/9.x.x/firebase-firestore.js"&gt;&lt;/script&gt;</pre>
+                `;
+                container.insertBefore(warning, container.firstChild);
+            }
+        });
+    </script>
+</body>
+</html>
