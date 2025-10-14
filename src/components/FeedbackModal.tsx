@@ -3,7 +3,7 @@
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment, useState } from 'react';
 import { MessageSquare, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { TrainingWeek } from '@/lib/types';
+import { TrainingWeek } from '@/domain/types';
 
 interface FeedbackModalProps {
   isOpen: boolean;

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getStartofCalendarMonth, getDaysForCalendar } from '@/lib/calendarUtils';
-import { fetchWorkoutsForMonth } from '@/lib/firebaseUtils';
-import { LoggedWorkout } from '@/lib/types';
+import { LoggedWorkout } from '@/domain/types';
 import { useAuth } from '@/context/AuthContext';
 
 export default function Calendar() {
@@ -48,7 +47,7 @@ export default function Calendar() {
                     <div className="flex flex-col gap-1 overflow-y-auto max-h-[80%] pr-1">
                         {(workouts[day.toDateString()] || []).map((workout, i) => (
                         <div
-                            key={i}
+                            key={`${workout.id}-${i}`}
                             className={`px-2 py-1 rounded-md text-xs text-white font-medium truncate
                             ${
                                 workout.type === "Run"

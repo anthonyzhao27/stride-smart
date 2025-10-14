@@ -1,34 +1,43 @@
-import { NextResponse } from "next/server";
-import { generateCompleteWeek } from "@/lib/plan-generation/generateCompleteWeek";
+import { NextRequest, NextResponse } from "next/server";
+import { requireAuth } from "@/lib/cognitoAuth";
+import { makePlanRepo } from "@/lib/planRepoFactory";
+import { GenerateWeeklyPlans } from "@/application/GenerateWeeklyPlans";
+import { GeneratePlansBodySchema } from "@/application/schemas/GeneratePlansSchema";
+import type { User } from "@/domain/types";
 
-export async function POST(req: Request) {
-    const body = await req.json();
-    const { uid, user } = body;
+export const runtime = "nodejs";
 
-    const allPlans = [];
-
-    for (let week = 1; week <= 1; week++) {
-        const plan = await generateCompleteWeek(user, week);
-    
-        try {
-            // Only try to save to Firestore if we're in a runtime environment with Firebase
-            if (process.env.NEXT_PUBLIC_FIREBASE_API_KEY) {
-                const { db } = await import("@/lib/firebase");
-                const { doc, setDoc } = await import("firebase/firestore");
-                
-                if (db) {
-                    console.log('Data being sent to Firestore:', JSON.stringify(plan, null, 2));
-                    const planRef = doc(db, "users", uid, "plans", `week_${week}`);
-                    await setDoc(planRef, plan);
-                }
-            }
-
-            allPlans.push({ week, plan});
-    
-        } catch (error) {
-            console.error("Failed to save plan:", error);
-            return NextResponse.json({ success: false, error: "Invalid plan format" }, { status: 500 });
-        }
+export async function POST(req: NextRequest) {
+    const payload = await requireAuth(req).catch(() => null);
+    if (!payload) {
+        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    return NextResponse.json({ success: true, allPlans});
+    const userId = payload.sub;
+
+    let body: unknown;
+    try {
+        body = await req.json();
+    } catch {
+        return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+    }
+
+    const parsed = GeneratePlansBodySchema.safeParse(body);
+    if (!parsed.success) {
+        return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
+    }
+
+    try {
+        const repo = makePlanRepo();
+        const service = new GenerateWeeklyPlans(repo);
+        const allPlans = await service.execute({
+            user: parsed.data.user as unknown as User,
+            userId,
+            startWeek: parsed.data.startWeek,
+            weeks: parsed.data.weeks,
+        });
+        return NextResponse.json({ success: true, allPlans });
+    } catch (err) {
+        console.error("GenerateWeeklyPlans failed", { message: (err as Error)?.message });
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    }
 }

@@ -1,8 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { db } from '@/lib/firebase';
-import { query, orderBy, collection, onSnapshot, doc, deleteDoc, getDoc } from 'firebase/firestore';
-import { LoggedWorkout, FormData } from '@/lib/types';
+import { apiClient } from '@/lib/apiClient';
+import { LoggedWorkout, FormData } from '@/domain/types';
 import WorkoutForm from './WorkoutForm';
 import { FaPlus } from 'react-icons/fa';
 import { useAuth } from "@/context/AuthContext";
@@ -21,7 +20,7 @@ export default function Dashboard() {
 
     const router = useRouter();
     
-    const { user } = useAuth();
+    const { user, loading } = useAuth();
     const uid = user?.uid;   
     
     useEffect(() => {
@@ -65,61 +64,52 @@ export default function Dashboard() {
 
     useEffect(() => {
         const checkOnboarding = async () => {
-            if (!uid || !db) return;
-            
-            const onboardingRef = doc(db, "users", uid, "onboardingData", "profile");
-            const onboardingSnap = await getDoc(onboardingRef);
-
-            setShowOnboarding(!onboardingSnap.exists());
+            if (loading || !uid) return;
+            try {
+                const resp = await apiClient.get<{ ok: boolean; profile?: unknown }>(`/onboarding`);
+                setShowOnboarding(!(resp && resp.ok && resp.profile));
+            } catch {
+                // Most likely not authenticated yet
+                setShowOnboarding(true);
+            }
         };
 
         checkOnboarding();
-    }, [uid]);
+    }, [uid, loading]);
 
     useEffect(() => {
-        if (!uid || !db) return;
+        if (loading || !uid) return;
+        let isCancelled = false;
 
-        const q = query(
-            collection(db, "users", uid, "workouts"),
-            orderBy("timestamp", "desc")
-        )
-
-        const unsubscribe = onSnapshot(
-            q,
-            (snapshot) => {
-                const workoutsData = snapshot.docs.map((doc) => {
-                    const data = doc.data();
-                    const ts = data.timestamp.toDate();
-                    
-                    return {
-                        id: doc.id,
-                        name: data.name,
-                        timestamp: ts,
-                        date: ts.toISOString().split("T")[0],
-                        time: `${String(ts.getHours()).padStart(2, '0')}:${String(ts.getMinutes()).padStart(2, '0')}`,
-                        duration: data.duration,
-                        distance: data.distance,
-                        unit: data.unit,
-                        type: data.type,
-                        effortLevel: data.effortLevel,
-                        notes: data.notes,
-                    } as LoggedWorkout;
-                });
-                setWorkouts(workoutsData);
-            },
-            (error) => {
-                console.error("Error fetching workouts:", error);
+        const fetchWorkouts = async () => {
+            try {
+                const data = await apiClient.get<{ workouts: LoggedWorkout[] }>(`/workouts`);
+                if (!isCancelled) {
+                    const normalized = (data?.workouts || []).map((w) => ({
+                        ...w,
+                        timestamp: (w.timestamp instanceof Date) ? w.timestamp : new Date(w.timestamp as unknown as string),
+                    }));
+                    setWorkouts(normalized);
+                }
+            } catch (e) {
+                console.error('Error fetching workouts:', e);
+                // Do not open onboarding here; only show onboarding based on explicit onboarding fetch
+                // Optionally handle unauthorized by redirecting to login
+                if (e instanceof Error && e.message.includes('Unauthorized')) {
+                    router.push('/login');
+                }
             }
-        );
+        };
 
-        return () => unsubscribe();
-    }, [uid]);
+        fetchWorkouts();
+        const interval = setInterval(fetchWorkouts, 30000);
+        return () => { isCancelled = true; clearInterval(interval); };
+    }, [uid, loading]);
 
     const handleDelete = async (id: string) => {
-        if (!uid || !db) return;
-        
+        if (!uid) return;
         try {
-            await deleteDoc(doc(db, "users", uid, "workouts", id));
+            await apiClient.delete(`/workouts/${id}`);
         } catch (error) {
             console.error("Error deleting workout:", error);
         }
@@ -225,9 +215,9 @@ export default function Dashboard() {
                     </div>
                     ) : (
                     <div className="grid gap-6 [grid-template-columns:repeat(auto-fill,minmax(300px,1fr))] animate-fade-in">
-                        {workouts.slice(0, 6).map((workout) => (
+                        {workouts.slice(0, 6).map((workout, idx) => (
                             <WorkoutCard
-                                key={workout.id}
+                                key={`${workout.id}-${idx}`}
                                 workout={workout}
                                 onDelete={handleDelete}
                                 onEdit={handleEdit}

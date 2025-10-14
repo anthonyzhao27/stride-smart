@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { processWithNewAI } from "@/lib/feedback-loop/newAISystem";
+import { requireAuth } from "@/lib/cognitoAuth";
 
 export async function POST(req: NextRequest) {
-  const { message, planId, userId } = await req.json();
+  // Verify authentication and get user ID from token
+  const payload = await requireAuth(req).catch(() => null);
+  if (!payload) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const userId = payload.sub;
+
+  const { message, planId } = await req.json();
   
   try {
     const newAIResponse = await processWithNewAI(message, userId, planId);

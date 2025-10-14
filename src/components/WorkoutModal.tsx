@@ -2,7 +2,7 @@
 
 import { Dialog, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
-import { LoggedWorkout } from '@/lib/types';
+import { LoggedWorkout } from '@/domain/types';
 
 export default function WorkoutModal({
     isOpen,
