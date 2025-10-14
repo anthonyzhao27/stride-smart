@@ -1,18 +1,35 @@
 import { Menu } from "@headlessui/react";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase"; // update path as needed
+import { signOut } from "@/lib/cognito";
 import Image from "next/image";
 import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function ProfileMenu() {
     const { user } = useAuth();
+    const router = useRouter();
+
+    const handleSignOut = async () => {
+        try {
+            await signOut();
+            router.push('/login');
+            window.location.href = '/login'; // Force reload to clear auth state
+        } catch (error) {
+            console.error('Error signing out:', error);
+        }
+    };
 
     return (
         <div className="relative inline-block text-left">
             <Menu as="div" className="relative">
                 <Menu.Button>
                     {user ? (
-                        <Image src={user?.photoURL ?? "https://ui-avatars.com/api/?name=User&background=ddd&color=555"} alt="Profile" width={24} height={24}className="w-10 h-10 rounded-full" />
+                        <Image 
+                            src={user?.photoURL ?? `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email)}&background=ddd&color=555`} 
+                            alt="Profile" 
+                            width={24} 
+                            height={24}
+                            className="w-10 h-10 rounded-full" 
+                        />
                         ) : (
                         <p>Not logged in</p>
                     )}
@@ -24,7 +41,7 @@ export default function ProfileMenu() {
                         <Menu.Item>
                             {({ active }) => (
                                 <button
-                                    onClick={() => auth && signOut(auth)}
+                                    onClick={handleSignOut}
                                     className={`${
                                         active ? "bg-red-100" : ""
                                     } group flex w-full items-center rounded-md px-2 py-2 text-sm text-red-600`}

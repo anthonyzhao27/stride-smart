@@ -1,11 +1,12 @@
 'use client';
 
-import {db} from '../lib/firebase';
-import { addDoc, collection, Timestamp, doc, updateDoc } from 'firebase/firestore';
 import { useForm } from 'react-hook-form';
 import { Controller } from 'react-hook-form';
-import { getAuth } from 'firebase/auth';
-import { FormData } from "@/lib/types";
+import { useAuth } from '@/context/AuthContext';
+import { FormData } from "@/domain/types";
+import { apiClient } from "@/lib/apiClient";
+
+// Use shared apiClient which attaches Authorization headers and base URL
 
 const getTodayDate = () => new Date().toISOString().split('T')[0];
 const getTodayTime = () => {
@@ -47,8 +48,8 @@ export default function WorkoutForm({
         }
     });
 
-    const auth = getAuth();
-    const uid = auth.currentUser?.uid;
+    const { user } = useAuth();
+    const uid = user?.uid;
 
     if (!uid) {
         console.error("User is not authenticated");
@@ -73,59 +74,18 @@ export default function WorkoutForm({
     const workoutType = watch('type');
 
     const onSubmit = async (data: FormData) => {
-        if (!data.name) {
-            const hour = parseInt(data.time.split(':')[0], 10);
-            let tod = "Night";
-            if (hour >= 20) {
-                tod = "Night";
-            } else if (hour >= 18) {
-                tod = "Evening";
-            } else if (hour >= 14) {
-                tod = "Afternoon";
-            } else if (hour >= 11) {
-                tod = "Lunch";
-            } else if (hour >= 5) {
-                tod = "Morning";
-            }
-            data.name = `${tod} ${data.type}`;
-        }
-
-        const {hours, minutes, seconds, date, time, ...rest} = data;
-
-        const duration = (Number(hours || 0) * 3600) + (Number(minutes || 0) * 60) + Number(seconds || 0);
-
-        const timestamp = new Date(`${date}T${time}`);
-
-        const finalData = {
-            ...rest,
-            duration,
-            timestamp,
-            createdAt: Timestamp.now(),
-        }
-
-
-        console.log('🚀 Form is submitting:', data);
+        console.log('🚀 Submitting workout to API:', data);
         try {
-            if (!db) {
-                console.error("Firestore not available");
-                return;
+            if (selectedWorkout) {
+                await apiClient.put(`/workouts/${selectedWorkout.id}`, data);
+            } else {
+                await apiClient.post(`/workouts`, data);
             }
 
-            if (selectedWorkout) {
-                const docRef = doc(db, "users", uid, "workouts", selectedWorkout.id);
-                await updateDoc(docRef, {
-                    ...finalData,
-                    updatedAt: Timestamp.now(),
-                });
-                console.log("Workout updated");
-            } else {
-                await addDoc(collection(db, "users", uid, "workouts"), finalData);
-                console.log("Workout added to Firestore");
-            }
             reset();
             onClose();
         } catch (error) {
-            console.error("❌ Error adding workout:", error);
+            console.error('❌ Error submitting workout:', error);
         }
     };
 

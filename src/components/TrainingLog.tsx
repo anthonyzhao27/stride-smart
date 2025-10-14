@@ -2,9 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { db } from '@/lib/firebase';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { TrainingWeek, TrainingWorkout } from '@/lib/types';
+import { apiClient } from '@/lib/apiClient';
+import { TrainingWeek } from '@/domain/types';
 import { secToMin } from "@/lib/conversion";
 import TrainingCard from './TrainingCard';
 
@@ -15,53 +14,23 @@ export default function TrainingLog() {
 
     
     useEffect(() => {
-        if (!user || !db) return;
-        
+        if (!user) return;
+        let cancelled = false;
         const fetchTrainingLogs = async () => {
             try {
-                if (!db) {
-                    console.error("Firestore not available");
-                    return;
-                }
-                const logsRef = collection(db, 'users', user.uid, 'plans');
-                const logsQuery = query(logsRef, orderBy('week', 'asc'));
-                const querySnapshot = await getDocs(logsQuery);
-                const logsData = querySnapshot.docs.map(doc => {
-                    const data = doc.data();
-                    
-                    // Handle date conversion more robustly
-                    const startDate = typeof data.startDate === 'object' && data.startDate !== null && 'toDate' in data.startDate
-                        ? (data.startDate as { toDate(): Date }).toDate()
-                        : new Date(data.startDate);
-                    const endDate = typeof data.endDate === 'object' && data.endDate !== null && 'toDate' in data.endDate
-                        ? (data.endDate as { toDate(): Date }).toDate()
-                        : new Date(data.endDate);
-                    
-                    return {
-                        id: doc.id,
-                        week: data.week,
-                        startDate: startDate,
-                        endDate: endDate,
-                        totalMileage: data.totalMileage,
-                        totalDuration: data.totalDuration,
-                        description: data.description || '',
-                        workouts: (data.workouts || []).map((w: { date: unknown; [key: string]: unknown }) => ({
-                            ...w,
-                            date: typeof w.date === 'object' && w.date !== null && 'toDate' in w.date 
-                                ? (w.date as { toDate(): Date }).toDate() 
-                                : new Date(w.date as string)
-                        })) as TrainingWorkout[]
-                    } as TrainingWeek;
-                });
-                setLogs(logsData);
+                type PlanRecord = { planId: string; plan: unknown };
+                const resp = await apiClient.get<{ ok: boolean; plans: Array<PlanRecord> }>(`/plans`);
+                const plans = (resp?.plans || []).map((p: PlanRecord) => ({ id: p.planId, ...(p.plan as object) }));
+                if (!cancelled) setLogs(plans as unknown as TrainingWeek[]);
             } catch (error) {
                 console.error("Error fetching training logs:", error);
-                setLogs([]);
+                if (!cancelled) setLogs([]);
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
-        }
+        };
         fetchTrainingLogs();
+        return () => { cancelled = true; };
     }, [user]);
 
     if (loading) return <p className="text-center">Loading training logs...</p>;

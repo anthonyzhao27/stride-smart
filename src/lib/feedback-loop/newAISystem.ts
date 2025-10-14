@@ -2,11 +2,11 @@
 // This is a prototype implementation of the new AI system
 
 import { OpenAI } from "openai";
-import { TrainingWeek, TrainingWorkout, WorkoutSegment } from "@/lib/types";
+import { TrainingWeek, TrainingWorkout, WorkoutSegment } from "@/domain/types";
 import { firestoreRepo } from "./firestoreRepo";
 import { collection, query, orderBy, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import { calculateDistanceAndDurationFromWorkoutSegments } from "@/lib/plan-generation/utils/calculateDistanceAndDurationFromWorkoutSegments";
+import { calculateDistanceAndDurationFromWorkoutSegments } from "@/domain/plan-generation/utils/calculateDistanceAndDurationFromWorkoutSegments";
 
 // Core types for the new flexible system
 export interface NewAIRequest {

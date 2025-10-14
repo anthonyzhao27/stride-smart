@@ -1,9 +1,7 @@
 'use client';
 import { useState } from 'react';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth, googleProvider } from '../lib/firebase';
+import { signIn } from '@/lib/cognito';
 import { useRouter } from 'next/navigation';
-import { signInWithPopup } from 'firebase/auth';
 import Image from 'next/image';
 
 export default function AuthForm() {
@@ -16,32 +14,32 @@ export default function AuthForm() {
         e.preventDefault();
         setError('');
 
-        if (!auth) {
-            setError('Authentication not available. Please check your configuration.');
-            return;
-        }
-
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            await signIn(email, password);
             router.push('/dashboard'); // Redirect to dashboard on successful login
-        } catch {
-            setError('Failed to log in. Please check your credentials.');
+            // Force a page reload to update auth context
+            window.location.href = '/dashboard';
+        } catch (err: unknown) {
+            console.error('Login error:', err);
+            const code = (typeof err === 'object' && err !== null && 'code' in err) ? (err as { code?: string }).code : undefined;
+            if (code === 'UserNotConfirmedException') {
+                setError('Please verify your email before logging in. Check your inbox for the verification code.');
+            } else if (code === 'NotAuthorizedException') {
+                setError('Incorrect email or password.');
+            } else if (code === 'UserNotFoundException') {
+                setError('No account found with this email.');
+            } else if (err instanceof Error) {
+                setError(err.message || 'Failed to log in. Please check your credentials.');
+            } else {
+                setError('Failed to log in. Please check your credentials.');
+            }
         }
     };
 
     const handleGoogleSignIn = async () => {
-        if (!auth || !googleProvider) {
-            setError('Authentication not available. Please check your configuration.');
-            return;
-        }
-
-        try {
-            await signInWithPopup(auth, googleProvider);
-            router.push('/dashboard'); // Redirect to dashboard on successful Google login
-        }
-        catch {
-        setError('Failed to log in with Google. Please try again.');
-        }
+        // Note: Google OAuth with Cognito requires additional setup via Hosted UI
+        // For now, we'll show a message to the user
+        setError('Google sign-in will be available soon. Please use email/password for now.');
     };
 
     return (

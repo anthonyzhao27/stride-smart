@@ -1,4 +1,4 @@
-import { TrainingWorkout, LoggedWorkout } from '@/lib/types';
+import { TrainingWorkout, LoggedWorkout } from '@/domain/types';
 
 type Props = {
     day: Date;

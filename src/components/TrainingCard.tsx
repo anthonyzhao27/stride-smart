@@ -1,6 +1,6 @@
-import { TrainingWorkout, WorkoutSet, WorkoutSegment } from '@/lib/types';
+import { TrainingWorkout, WorkoutSet, WorkoutSegment } from '@/domain/types';
 import { useState } from "react";
-import { formatPace } from "@/lib/plan-generation/utils/getTrainingPaces";
+import { formatPace } from "@/domain/plan-generation/utils/getTrainingPaces";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { secToMin } from "@/lib/conversion";
 
@@ -32,7 +32,10 @@ export function WorkoutDetails( { workout }: { workout: WorkoutSegment[] }) {
             {workout.map((item, idx) => {
                 if (isWorkoutSet(item)) {
                     return (
-                        <div key={idx} className="text-sm">
+                        <div
+                            key={`set-${idx}-${item.type}-${item.length.type}-${item.length.amount}-${item.reps ?? 0}-${item.rest ?? 0}`}
+                            className="text-sm"
+                        >
                             {item.reps ? (item.reps !== 1 ? `${item.reps}x` : "") : ""}
                             {item.length.type == "time" ? item.length.amount >= 60 ? secToMin(item.length.amount) : `${item.length.amount}s` : item.length.amount >= 2000 ? `${item.length.amount / 1000}k` : `${item.length.amount}m`} @ {item.type}
                             {item.rest !== undefined
@@ -42,13 +45,13 @@ export function WorkoutDetails( { workout }: { workout: WorkoutSegment[] }) {
                     );
                 } else if (isWorkoutSegment(item)) {
                     return (
-                        <div key={idx} className="text-sm">
+                        <div key={`rest-${idx}-${item.rest}`} className="text-sm">
                             Rest {item.rest >= 60 ? secToMin(item.rest) : `${item.rest}s`}
                         </div>
                     );
                 } else {
                     return (
-                        <div key={idx} className="text-sm">
+                        <div key={`restnum-${idx}-${String(item)}`} className="text-sm">
                             Rest {typeof item === "number" ? secToMin(item) : "N/A"}
                         </div>
                     );
@@ -98,7 +101,7 @@ export default function TrainingCard({ workout }: { workout: TrainingWorkout }) 
                                 const type = entry.type;
                                 const pace = entry.pace;
                                 return (
-                                    <span key={idx}>
+                                    <span key={`pace-${idx}-${type}`}>
                                         {type}: {typeof pace === "number" ? formatPace(pace) : (`${formatPace(pace[0]).slice(0, -7)} - ${formatPace(pace[1])}`)}
                                     </span>
                                 );

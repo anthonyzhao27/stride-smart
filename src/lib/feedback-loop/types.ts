@@ -1,4 +1,4 @@
-import { TrainingWorkout, TrainingWeek } from "@/lib/types";
+import { TrainingWorkout, TrainingWeek } from "@/domain/types";
 
 export type { TrainingWorkout, TrainingWeek };
 

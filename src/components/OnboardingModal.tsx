@@ -2,10 +2,9 @@
 
 import { useForm } from 'react-hook-form';
 import { Dialog } from '@headlessui/react';
-import { User } from "@/lib/types";
+import { User } from "@/domain/types";
 import { useAuth } from "@/context/AuthContext";
-import { doc, setDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { apiClient } from "@/lib/apiClient";
 import { useState } from 'react';
 
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -113,12 +112,9 @@ export default function OnboardingModal({
         };
 
         try {
-            if (!db) {
-                console.error("Firestore not available");
-                return;
-            }
-            await setDoc(doc(db, "users", uid, "onboardingData", "profile"), payload);
-            
+            // Persist to backend DynamoDB via Express API
+            await apiClient.post(`/onboarding`, payload);
+
             onSubmit(payload);
             onClose();
 
